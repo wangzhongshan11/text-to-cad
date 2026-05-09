@@ -6,10 +6,11 @@ from dataclasses import dataclass
 from fnmatch import fnmatch
 from pathlib import Path, PurePosixPath
 
+from .cad_repo_root import cad_harness_repo_root
 from .metadata import GeneratorMetadata, normalize_mesh_numeric, parse_generator_metadata
 
 
-REPO_ROOT = Path.cwd().resolve()
+REPO_ROOT = cad_harness_repo_root()
 CAD_ROOT = REPO_ROOT
 STEP_SUFFIXES = (".step", ".stp")
 EXPLORER_ARTIFACT_FILENAMES = {

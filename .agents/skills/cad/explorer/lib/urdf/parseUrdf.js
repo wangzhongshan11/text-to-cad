@@ -105,6 +105,46 @@ function labelForMeshFilename(filename) {
   return parts[parts.length - 1] || "mesh";
 }
 
+/**
+ * URDF allows one primitive or mesh under <geometry>.
+ * @returns {{ type: "mesh", meshElement: Element } | { type: "box", size: number[] } | { type: "cylinder", radius: number, length: number } | { type: "sphere", radius: number }}
+ */
+function parseVisualGeometry(geometryElement, linkName, visualIndex) {
+  if (!geometryElement) {
+    throw new Error(`URDF link ${linkName} visual ${visualIndex} is missing geometry`);
+  }
+  const meshElement = childElementsByTag(geometryElement, "mesh")[0];
+  if (meshElement) {
+    return { type: "mesh", meshElement };
+  }
+  const boxElement = childElementsByTag(geometryElement, "box")[0];
+  if (boxElement) {
+    const size = parseNumberList(boxElement.getAttribute("size"), 3, [0, 0, 0]);
+    if (size.some((value) => value <= 0)) {
+      throw new Error(`URDF link ${linkName} visual ${visualIndex} box size must be positive`);
+    }
+    return { type: "box", size };
+  }
+  const cylinderElement = childElementsByTag(geometryElement, "cylinder")[0];
+  if (cylinderElement) {
+    const radius = Number(cylinderElement.getAttribute("radius"));
+    const length = Number(cylinderElement.getAttribute("length"));
+    if (!Number.isFinite(radius) || radius <= 0 || !Number.isFinite(length) || length <= 0) {
+      throw new Error(`URDF link ${linkName} visual ${visualIndex} cylinder must have positive radius and length`);
+    }
+    return { type: "cylinder", radius, length };
+  }
+  const sphereElement = childElementsByTag(geometryElement, "sphere")[0];
+  if (sphereElement) {
+    const radius = Number(sphereElement.getAttribute("radius"));
+    if (!Number.isFinite(radius) || radius <= 0) {
+      throw new Error(`URDF link ${linkName} visual ${visualIndex} sphere must have positive radius`);
+    }
+    return { type: "sphere", radius };
+  }
+  throw new Error(`URDF link ${linkName} visual ${visualIndex} uses unsupported visual geometry`);
+}
+
 function parseRgbaColor(rgbaText, context) {
   const values = parseNumberList(rgbaText, 4, [0, 0, 0, 1]);
   if (values.some((value) => value < 0 || value > 1)) {
@@ -619,26 +659,54 @@ export function parseUrdf(xmlText, { sourceUrl, explorerMetadata = null, motionE
     }
     const visuals = childElementsByTag(linkElement, "visual").map((visualElement, index) => {
       const geometryElement = childElementsByTag(visualElement, "geometry")[0];
-      const meshElement = geometryElement ? childElementsByTag(geometryElement, "mesh")[0] : null;
-      if (!meshElement) {
-        throw new Error(`URDF link ${name} uses unsupported visual geometry`);
+      const parsedGeometry = parseVisualGeometry(geometryElement, name, index + 1);
+      const originTransform = parseOriginTransform(childElementsByTag(visualElement, "origin")[0]);
+      const color = resolveVisualColor(visualElement, namedMaterialColors, {
+        linkName: name,
+        visualIndex: index + 1
+      });
+      if (parsedGeometry.type === "mesh") {
+        const { meshElement } = parsedGeometry;
+        const filename = String(meshElement.getAttribute("filename") || "").trim();
+        if (!filename) {
+          throw new Error(`URDF link ${name} visual ${index + 1} is missing a mesh filename`);
+        }
+        return {
+          id: `${name}:v${index + 1}`,
+          label: labelForMeshFilename(filename),
+          meshUrl: resolveMeshUrl(filename, sourceUrl || "/"),
+          primitive: null,
+          color,
+          localTransform: multiplyTransforms(originTransform, parseScaleTransform(meshElement))
+        };
       }
-      const filename = String(meshElement.getAttribute("filename") || "").trim();
-      if (!filename) {
-        throw new Error(`URDF link ${name} visual ${index + 1} is missing a mesh filename`);
+      if (parsedGeometry.type === "box") {
+        return {
+          id: `${name}:v${index + 1}`,
+          label: `box (${name})`,
+          meshUrl: "",
+          primitive: { kind: "box", size: parsedGeometry.size },
+          color,
+          localTransform: originTransform
+        };
+      }
+      if (parsedGeometry.type === "cylinder") {
+        return {
+          id: `${name}:v${index + 1}`,
+          label: `cylinder (${name})`,
+          meshUrl: "",
+          primitive: { kind: "cylinder", radius: parsedGeometry.radius, length: parsedGeometry.length },
+          color,
+          localTransform: originTransform
+        };
       }
       return {
         id: `${name}:v${index + 1}`,
-        label: labelForMeshFilename(filename),
-        meshUrl: resolveMeshUrl(filename, sourceUrl || "/"),
-        color: resolveVisualColor(visualElement, namedMaterialColors, {
-          linkName: name,
-          visualIndex: index + 1
-        }),
-        localTransform: multiplyTransforms(
-          parseOriginTransform(childElementsByTag(visualElement, "origin")[0]),
-          parseScaleTransform(meshElement)
-        )
+        label: `sphere (${name})`,
+        meshUrl: "",
+        primitive: { kind: "sphere", radius: parsedGeometry.radius },
+        color,
+        localTransform: originTransform
       };
     });
     return {

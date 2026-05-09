@@ -439,3 +439,30 @@ test("URDF mesh data marks uncolored visuals for default explorer color", () => 
   );
   assert.deepEqual(Array.from(meshGeometry.colors.slice(9, 18)), [1, 1, 1, 1, 1, 1, 1, 1, 1]);
 });
+
+test("buildUrdfMeshGeometry includes URDF primitive visuals without STL meshes", () => {
+  const urdfData = {
+    robotName: "p",
+    rootLink: "base_link",
+    rootWorldTransform: translationTransform(0, 0, 0),
+    links: [
+      {
+        name: "base_link",
+        visuals: [
+          {
+            id: "base_link:v1",
+            label: "cylinder (base_link)",
+            meshUrl: "",
+            primitive: { kind: "cylinder", radius: 0.05, length: 0.1 },
+            color: "",
+            localTransform: translationTransform(0, 0, 0)
+          }
+        ]
+      }
+    ],
+    joints: []
+  };
+  const meshGeometry = buildUrdfMeshGeometry(urdfData, new Map());
+  assert.ok(meshGeometry.vertices.length > 0);
+  assert.ok(meshGeometry.indices.length > 0);
+});

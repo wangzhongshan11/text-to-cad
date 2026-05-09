@@ -47,6 +47,7 @@ from OCP.XCAFDoc import (
     XCAFDoc_ShapeTool,
 )
 
+from common.cad_repo_root import cad_harness_repo_root
 from common.glb_mesh_payload import (
     DEFAULT_MATERIAL as DEFAULT_TOPOLOGY_MATERIAL,
     normalize_rgba as _normalize_rgba,
@@ -57,7 +58,7 @@ from common.glb_mesh_payload import (
 from common.selector_types import SelectorBundle, SelectorProfile
 
 
-REPO_ROOT = Path.cwd().resolve()
+REPO_ROOT = cad_harness_repo_root()
 ColorRGBA = tuple[float, float, float, float]
 
 

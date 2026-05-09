@@ -1,0 +1,13 @@
+from OCP.TDF import TDF_Label as TDF_Label
+from build123d.build_common import UNITS_PER_METER as UNITS_PER_METER
+from build123d.build_enums import PrecisionMode as PrecisionMode, Unit as Unit
+from build123d.geometry import Location as Location
+from build123d.topology import Compound as Compound, Curve as Curve, Part as Part, Shape as Shape, Sketch as Sketch
+from datetime import datetime
+from io import BytesIO
+from os import PathLike
+
+def export_brep(to_export: Shape, file_path: PathLike | str | bytes | BytesIO) -> bool: ...
+def export_gltf(to_export: Shape, file_path: PathLike | str | bytes, unit: Unit = ..., binary: bool = False, linear_deflection: float = 0.001, angular_deflection: float = 0.1) -> bool: ...
+def export_step(to_export: Shape, file_path: PathLike | str | bytes, unit: Unit = ..., write_pcurves: bool = True, precision_mode: PrecisionMode = ..., *, timestamp: str | datetime | None = None) -> bool: ...
+def export_stl(to_export: Shape, file_path: PathLike | str | bytes, tolerance: float = 0.001, angular_tolerance: float = 0.1, ascii_format: bool = False) -> bool: ...

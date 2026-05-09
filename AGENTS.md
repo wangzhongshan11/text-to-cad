@@ -23,6 +23,30 @@ project-file directory. Project CAD entries may live at the repository root
 under folders such as `STEP/`, `STL/`, `DXF/`, and `3MF/`, or in another
 explicit repo-relative layout chosen by the project.
 
+### someTestCases 目录约定（本仓库）
+
+本克隆里的实验模型与构建过程说明放在 `someTestCases/<domain>/<slug>/`
+（总览见 `someTestCases/README.md`）。每个案例尽量自洽：同目录下放生成器
+`.py`、主 STEP、Explorer 侧车文件，以及**过程记录**（见下节）。
+
+### Claude Code：迭代过程全量留痕（`someTestCases/**` 下强制）
+
+在 `someTestCases/` 下**新建或修改**任何内容时，必须维护**完整过程记录**，
+不能只写最终「干净」的成功步骤。在该案例目录中维护 `ITERATION_LOG.md` 或
+`*_build_process.md`，按**时间顺序**记录：
+
+- **所有实质性工具使用**：逐字记录 shell 命令行与 **cwd**；CAD 技能 CLI
+ （`scripts/step`、`scripts/inspect`、`scripts/render`、`scripts/dxf` 等）；
+  `npm` / Explorer 相关命令；以及影响本案例的 Claude Code 内置工具调用
+  （Read / Edit / Bash / WebFetch 等）及要点。
+- **返回与产物**：退出码；stdout/stderr 中关键片段；生成或覆盖的**文件路径**。
+- **失败**：每次失败尝试的报错全文或必要摘要（有用时附栈信息）。
+- **修复与重试**：重跑前在源码或环境里改了什么、**为何**这样改。
+
+刻意省略失败尝试或「难看」的中间命令，违背本条目的。该记录与
+`.agents/skills/cad/SKILL.md` 中的几何校验流程**互补**：前者是**过程审计**，
+后者是**几何正确性门槛**。
+
 The CAD and URDF skill tools are file-targeted. They do not depend on a harness
 layout or prepend a project root.
 

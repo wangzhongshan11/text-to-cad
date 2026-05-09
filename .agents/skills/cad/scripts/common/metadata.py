@@ -5,8 +5,10 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 
+from common.cad_repo_root import cad_harness_repo_root
 
-REPO_ROOT = Path.cwd().resolve()
+
+REPO_ROOT = cad_harness_repo_root()
 CAD_ROOT = REPO_ROOT
 DEFAULT_MESH_TOLERANCE = 0.1
 DEFAULT_MESH_ANGULAR_TOLERANCE = 0.1

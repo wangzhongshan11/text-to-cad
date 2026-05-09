@@ -66,6 +66,40 @@ test("parseUrdf resolves referenced robot material colors from rgba", () => {
   );
 });
 
+test("parseUrdf accepts cylinder and box primitive visuals", () => {
+  const robot = new FakeElement("robot", { name: "prim_bot" }, [
+    new FakeElement("link", { name: "base_link" }, [
+      new FakeElement("visual", {}, [
+        new FakeElement("origin", { xyz: "0 0 0", rpy: "0 0 0" }),
+        new FakeElement("geometry", {}, [
+          new FakeElement("cylinder", { radius: "0.09", length: "0.027" })
+        ])
+      ])
+    ]),
+    new FakeElement("link", { name: "upper_link" }, [
+      new FakeElement("visual", {}, [
+        new FakeElement("geometry", {}, [
+          new FakeElement("box", { size: "0.1 0.2 0.3" })
+        ])
+      ])
+    ]),
+    new FakeElement("joint", { name: "j0", type: "fixed" }, [
+      new FakeElement("parent", { link: "base_link" }),
+      new FakeElement("child", { link: "upper_link" }),
+      new FakeElement("origin", { xyz: "0 0 0.1", rpy: "0 0 0" })
+    ])
+  ]);
+
+  const urdfData = withFakeDomParser(new FakeDocument(robot), () => parseUrdf("<robot />", { sourceUrl: "/workspace/robot.urdf" }));
+
+  assert.equal(urdfData.links[0].visuals[0].meshUrl, "");
+  assert.equal(urdfData.links[0].visuals[0].primitive.kind, "cylinder");
+  assert.equal(urdfData.links[0].visuals[0].primitive.radius, 0.09);
+  assert.equal(urdfData.links[0].visuals[0].primitive.length, 0.027);
+  assert.equal(urdfData.links[1].visuals[0].primitive.kind, "box");
+  assert.deepEqual(urdfData.links[1].visuals[0].primitive.size, [0.1, 0.2, 0.3]);
+});
+
 test("parseUrdf applies non-zero default joint angles from explorer metadata sidecar", () => {
   const robot = new FakeElement("robot", { name: "sample_robot" }, [
     new FakeElement("link", { name: "base_link" }),

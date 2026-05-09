@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from common.cad_repo_root import cad_harness_repo_root
 from common.selector_types import SelectorBundle
 
 
@@ -15,7 +16,7 @@ STEP_TOPOLOGY_EXTENSION = "STEP_topology"
 STEP_TOPOLOGY_SCHEMA_VERSION = 1
 GLB_MAGIC = 0x46546C67
 GLB_VERSION = 2
-REPO_ROOT = Path.cwd().resolve()
+REPO_ROOT = cad_harness_repo_root()
 
 
 def _display_path(path: Path) -> str:

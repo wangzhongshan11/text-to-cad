@@ -1,0 +1,207 @@
+{
+    "meta": {
+      "name": "4DOF_Articulated_Robot_Arm",
+      "unit": "mm",
+      "upAxis": "+Z",
+      "description": "4 DOF serial industrial robot arm with fixed gripper"
+    },
+    "assemblies": [
+      {
+        "id": "A0",
+        "name": "RobotArm",
+        "children": [
+          "A1_BaseAssembly",
+          "A2_ShoulderAssembly",
+          "A3_ElbowAssembly",
+          "A4_WristAssembly",
+          "A5_EndEffector"
+        ]
+      }
+    ],
+    "parts": [
+      {
+        "id": "BasePlate",
+        "role": "base",
+        "type": "structure",
+        "geometryHint": "cylinder",
+        "connectors": ["top_mount"],
+        "fixedToGround": true
+      },
+      {
+        "id": "J1_OutputHub",
+        "role": "joint_output",
+        "type": "revolute_joint",
+        "joint": {
+          "jointId": "J1",
+          "axis": "+Z",
+          "rangeDeg": [-180, 180],
+          "defaultDeg": 0
+        },
+        "connectors": ["input_mount", "output_mount"]
+      },
+      {
+        "id": "ShoulderLink",
+        "role": "link",
+        "type": "structure",
+        "geometryHint": "box",
+        "connectors": ["proximal", "distal"]
+      },
+      {
+        "id": "J2_Module",
+        "role": "joint_module",
+        "type": "revolute_joint",
+        "joint": {
+          "jointId": "J2",
+          "axis": "+Y",
+          "rangeDeg": [-135, 60],
+          "defaultDeg": 0
+        },
+        "connectors": ["input_mount", "output_mount"]
+      },
+      {
+        "id": "UpperArmLink",
+        "role": "link",
+        "type": "structure",
+        "geometryHint": "box",
+        "connectors": ["proximal", "distal"]
+      },
+      {
+        "id": "J3_Module",
+        "role": "joint_module",
+        "type": "revolute_joint",
+        "joint": {
+          "jointId": "J3",
+          "axis": "+Y",
+          "rangeDeg": [-150, 150],
+          "defaultDeg": 0
+        },
+        "connectors": ["input_mount", "output_mount"]
+      },
+      {
+        "id": "ForearmLink",
+        "role": "link",
+        "type": "structure",
+        "geometryHint": "box",
+        "connectors": ["proximal", "distal"]
+      },
+      {
+        "id": "J4_Module",
+        "role": "joint_module",
+        "type": "revolute_joint",
+        "joint": {
+          "jointId": "J4",
+          "axis": "+X",
+          "rangeDeg": [-180, 180],
+          "defaultDeg": 0
+        },
+        "connectors": ["input_mount", "output_mount"]
+      },
+      {
+        "id": "WristHousing",
+        "role": "wrist",
+        "type": "structure",
+        "geometryHint": "cylinder",
+        "connectors": ["mount", "tool_interface"]
+      },
+      {
+        "id": "GripperBase",
+        "role": "end_effector_mount",
+        "type": "structure",
+        "geometryHint": "box",
+        "connectors": ["mount"]
+      },
+      {
+        "id": "LeftFinger",
+        "role": "gripper_finger",
+        "type": "structure",
+        "geometryHint": "box",
+        "connectors": []
+      },
+      {
+        "id": "RightFinger",
+        "role": "gripper_finger",
+        "type": "structure",
+        "geometryHint": "box",
+        "connectors": []
+      }
+    ],
+    "mates": [
+      {
+        "type": "REVOLUTE",
+        "jointId": "J1",
+        "partA": "BasePlate",
+        "partB": "J1_OutputHub",
+        "connectorA": "top_mount",
+        "connectorB": "input_mount"
+      },
+      {
+        "type": "FASTENED",
+        "partA": "J1_OutputHub",
+        "partB": "ShoulderLink",
+        "connectorA": "output_mount",
+        "connectorB": "proximal"
+      },
+      {
+        "type": "REVOLUTE",
+        "jointId": "J2",
+        "partA": "ShoulderLink",
+        "partB": "J2_Module",
+        "connectorA": "distal",
+        "connectorB": "input_mount"
+      },
+      {
+        "type": "FASTENED",
+        "partA": "J2_Module",
+        "partB": "UpperArmLink",
+        "connectorA": "output_mount",
+        "connectorB": "proximal"
+      },
+      {
+        "type": "REVOLUTE",
+        "jointId": "J3",
+        "partA": "UpperArmLink",
+        "partB": "J3_Module",
+        "connectorA": "distal",
+        "connectorB": "input_mount"
+      },
+      {
+        "type": "FASTENED",
+        "partA": "J3_Module",
+        "partB": "ForearmLink",
+        "connectorA": "output_mount",
+        "connectorB": "proximal"
+      },
+      {
+        "type": "REVOLUTE",
+        "jointId": "J4",
+        "partA": "ForearmLink",
+        "partB": "J4_Module",
+        "connectorA": "distal",
+        "connectorB": "input_mount"
+      },
+      {
+        "type": "FASTENED",
+        "partA": "J4_Module",
+        "partB": "WristHousing",
+        "connectorA": "output_mount",
+        "connectorB": "mount"
+      },
+      {
+        "type": "FASTENED",
+        "partA": "WristHousing",
+        "partB": "GripperBase",
+        "connectorA": "tool_interface",
+        "connectorB": "mount"
+      },
+      {
+        "type": "FASTENED",
+        "partA": "GripperBase",
+        "partB": "LeftFinger"
+      },
+      {
+        "type": "FASTENED",
+        "partA": "GripperBase",
+        "partB": "RightFinger"
+      }
+    ]
+  }

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "PowerShell",
+      "Bash(\".venv/Scripts/python.exe\":*)",
+      "Bash(EXPLORER_WORKSPACE_ROOT=\"D:/code/text-to-cad\" EXPLORER_ROOT_DIR=\"D:/code/text-to-cad\" npm:*)",
+      "Bash(mv:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(python:*)",
+      "Bash(/d/code/text-to-cad/.venv/Scripts/python:*)",
+      "Bash(.venv/Scripts/python:*)"
+    ],
+    "defaultMode": "bypassPermissions"
+  }
+}

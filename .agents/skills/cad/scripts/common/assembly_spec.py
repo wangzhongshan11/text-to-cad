@@ -9,10 +9,11 @@ from pathlib import Path
 from pathlib import PurePosixPath
 
 from common.catalog import find_source_by_cad_ref
+from common.cad_repo_root import cad_harness_repo_root
 from common.metadata import parse_generator_metadata
 
 
-REPO_ROOT = Path.cwd().resolve()
+REPO_ROOT = cad_harness_repo_root()
 CAD_ROOT = REPO_ROOT
 STEP_SUFFIXES = (".step", ".stp")
 INSTANCE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9._-]+$")

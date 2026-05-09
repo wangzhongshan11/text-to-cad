@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
+from common.cad_repo_root import cad_harness_repo_root
 from common.catalog import (
     cad_ref_from_step_path as fallback_cad_ref_from_step_path,
     find_source_by_cad_ref,
@@ -13,7 +14,7 @@ from common.catalog import (
 )
 
 
-REPO_ROOT = Path.cwd().resolve()
+REPO_ROOT = cad_harness_repo_root()
 CAD_ROOT = REPO_ROOT
 
 

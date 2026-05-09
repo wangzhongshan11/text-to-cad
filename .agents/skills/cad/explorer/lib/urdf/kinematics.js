@@ -1,3 +1,5 @@
+import { buildPrimitiveMeshData } from "./primitiveMeshData.js";
+
 const IDENTITY_TRANSFORM = Object.freeze([
   1, 0, 0, 0,
   0, 1, 0, 0,
@@ -324,7 +326,9 @@ function resolveUrdfVisuals(urdfData, meshesByUrl) {
     for (const visual of visuals) {
       const meshUrl = String(visual?.meshUrl || "");
       const partFileRef = String(visual?.partFileRef || "");
-      const partMesh = resolveVisualMesh(meshesByUrl, meshUrl, partFileRef);
+      const partMesh = visual?.primitive
+        ? buildPrimitiveMeshData(visual.primitive)
+        : resolveVisualMesh(meshesByUrl, meshUrl, partFileRef);
       if (!partMesh) {
         continue;
       }

@@ -34,6 +34,7 @@ if __package__ in {None, ""}:
     ]
     sys.path.insert(0, str(scripts_dir))
 
+from common.cad_repo_root import cad_harness_repo_root
 from common.step_targets import (
     CadRefError,
     ResolvedStepTarget,
@@ -43,7 +44,7 @@ from common.step_targets import (
 from common.cli_logging import CliLogger
 from common.glb_topology import read_step_topology_bundle_from_glb, read_step_topology_manifest_from_glb
 
-REPO_ROOT = Path.cwd().resolve()
+REPO_ROOT = cad_harness_repo_root()
 CAD_ROOT = REPO_ROOT
 DEFAULT_MODEL_COLOR = (0.80, 0.84, 0.90)
 DEFAULT_BACKGROUND_COLOR = (0.98, 0.985, 0.99)
