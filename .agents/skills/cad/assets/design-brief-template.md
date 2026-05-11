@@ -2,6 +2,8 @@
 
 Use this as an internal note-taking scaffold. Do not ask the user to fill it out.
 
+When the workflow uses **`assembly.json`**, align the brief with `references/model-decomposition-assembly-spec.md` so decomposition, JSON, and transpiled `gen_step()` stay consistent.
+
 ```text
 CAD brief:
 - Model:

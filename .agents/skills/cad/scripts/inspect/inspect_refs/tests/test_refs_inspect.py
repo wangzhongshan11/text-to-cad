@@ -546,7 +546,7 @@ class InspectRefsTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         error = result["errors"][0]
         self.assertEqual("missing_glb", error["code"])
-        self.assertIn("\nRegenerate STEP artifacts with the following command using the CAD skill:", error["message"])
+        self.assertIn("\nRegenerate using the CAD skill (from repo root), for example:", error["message"])
         self.assertNotIn("scripts.step", error["message"])
         self.assertIn("regenerateCommand", error)
         self.assertEqual("python scripts/step", error["regenerateCommand"])
@@ -558,7 +558,7 @@ class InspectRefsTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         error = result["errors"][0]
         self.assertEqual("missing_selector_topology", error["code"])
-        self.assertIn("\nRegenerate STEP artifacts with the following command using the CAD skill:", error["message"])
+        self.assertIn("\nRegenerate using the CAD skill (from repo root), for example:", error["message"])
 
     def test_missing_step_topology_is_an_inspect_error(self) -> None:
         with self._mock_glb_topology(_summary_manifest(self.cad_ref), include_index=False):
@@ -567,7 +567,7 @@ class InspectRefsTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         error = result["errors"][0]
         self.assertEqual("missing_step_topology", error["code"])
-        self.assertIn("\nRegenerate STEP artifacts with the following command using the CAD skill:", error["message"])
+        self.assertIn("\nRegenerate using the CAD skill (from repo root), for example:", error["message"])
 
     def test_unsupported_step_topology_is_an_inspect_error(self) -> None:
         self._touch_glb()
@@ -583,7 +583,7 @@ class InspectRefsTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         error = result["errors"][0]
         self.assertEqual("unsupported_step_topology", error["code"])
-        self.assertIn("\nRegenerate STEP artifacts with the following command using the CAD skill:", error["message"])
+        self.assertIn("\nRegenerate using the CAD skill (from repo root), for example:", error["message"])
 
     def test_stale_glb_topology_is_an_inspect_error(self) -> None:
         with self._mock_glb_topology(_refs_manifest(self.cad_ref), current_hash="new-step-hash"):
@@ -592,7 +592,7 @@ class InspectRefsTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         error = result["errors"][0]
         self.assertEqual("stale_step_topology", error["code"])
-        self.assertIn("\nRegenerate STEP artifacts with the following command using the CAD skill:", error["message"])
+        self.assertIn("\nRegenerate using the CAD skill (from repo root), for example:", error["message"])
 
     def test_cad_ref_mismatch_is_an_inspect_error(self) -> None:
         with self._mock_glb_topology({**_refs_manifest("other/ref"), "stepHash": "step-hash-123"}):
@@ -601,7 +601,7 @@ class InspectRefsTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         error = result["errors"][0]
         self.assertEqual("cad_ref_mismatch", error["code"])
-        self.assertIn("\nRegenerate STEP artifacts with the following command using the CAD skill:", error["message"])
+        self.assertIn("\nRegenerate using the CAD skill (from repo root), for example:", error["message"])
 
     def test_non_leaf_occurrence_detail_reports_children(self) -> None:
         with self._mock_glb_topology(_refs_manifest(self.cad_ref)):

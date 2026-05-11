@@ -345,7 +345,12 @@ export function useCadAssets({
           setError("");
           return;
         }
-        throw new Error("STEP assembly topology is not self-contained.\nRegenerate STEP artifacts with the following command using the CAD skill:");
+        throw new Error(
+          "STEP assembly topology is not self-contained.\n" +
+            "Regenerate using the CAD skill (from repo root), for example:\n" +
+            "  ./.venv/bin/python .agents/skills/cad/scripts/step path/to/generator.py\n" +
+            "Prefer the owning .py; for native .step add --kind part|assembly; if Git LFS pointers: git lfs pull"
+        );
       }
       const meshUrl = entryMeshAssetUrl(entry);
       if (!meshUrl) {

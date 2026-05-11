@@ -419,3 +419,78 @@ d:\code\text-to-cad\.venv\Scripts\python -m step --kind assembly `
 
 **产物：** `someTestCases/furniture/wardrobe1/.wardrobe1_gen.step.glb`（及 STEP 侧车刷新）
 
+---
+
+### 2026-05-11（第二次）：拓扑 GLB 报错与 LFS / 环境记录（macOS / Cursor agent）
+
+**cwd:** `/Users/shenzhi/things/work/codes/text-to-cad`
+
+**现象：** Explorer 或拓扑校验报 `STEP_topology` / `indexView` 不可读。
+
+**排查：**
+
+- 工作区内 `wardrobe1_gen.step` 与 `.wardrobe1_gen.step.glb` 在磁盘上为 **Git LFS pointer 文本**（`version https://git-lfs.github.com/spec/v1`），不是真实 STEP/GLB 字节；按 glTF 解析会失败，与「缺少 indexView」表现一致。
+- 修复路径：**`git lfs pull`** 拉取二进制，或在本机用 **`scripts/step`** 对 owning **`wardrobe1_gen.py`** 重写产物（推荐后者以保持与生成器一致）。
+
+**尝试的 regen 命令（agent 环境）：**
+
+```bash
+./.venv/bin/python .agents/skills/cad/scripts/step someTestCases/furniture/wardrobe1/wardrobe1_gen.py --verbose
+```
+
+**结果：** 失败 — `build123d` 导入链上 **`vtkmodules`** 初始化错误（`vtkCommonTransforms` / `vtkCommonDataModel` 相关 `ImportError`）。该 agent 环境未安装 **`git lfs`**，无法通过 `git lfs pull` 恢复对象。
+
+**建议（维护者本机）：**
+
+1. 安装并启用 **Git LFS** 后对该 case 执行 **`git lfs pull`**；或  
+2. 在 **VTK/build123d 正常** 的 venv 中执行：
+
+   ```bash
+   ./.venv/bin/python .agents/skills/cad/scripts/step someTestCases/furniture/wardrobe1/wardrobe1_gen.py
+   ```
+
+   若仅持有 STEP、无 `.py`，再使用 **`--kind assembly`** 对 **`wardrobe1_gen.step`** 重跑（与 Windows 日志中第一次补全侧车方式一致）。
+
+**文档：** 根目录 **`README.md`** 增加 Troubleshooting（LFS pointer / regen）；**`pipeline-reference.md`**、**`someTestCases/README.md`** 补充侧车须为真实二进制之说明。
+
+---
+
+### 2026-05-11（第三次）：Explorer「缺少 GLB」提示与再生说明
+
+**cwd:** `/Users/shenzhi/things/work/codes/text-to-cad`
+
+**变更：** Explorer `cadDirectoryScanner.mjs`、`inspect` 使用的 **`step_targets.py`**、**`useCadAssets.js`**、相关测试中，将「Regenerate…」固定话术改为：优先对 **`wardrobe1_gen.py`**（或同名 owning **`*.py`**）从仓库根执行 **`./.venv/bin/python .agents/skills/cad/scripts/step …`**；仅 STEP 时补 **`--kind part|assembly`**；若 STEP/GLB 为 **Git LFS pointer** 则先 **`git lfs pull`**。
+
+**原因：** 裸路径 `python scripts/step …wardrobe1_gen.step` 在 STEP 未 smudge 时会被 **`_ensure_step_ready`** 拒绝；且未带 **`--kind`** 时 CLI 不接受纯 STEP 目标。缺侧车 **`.wardrobe1_gen.step.glb`** 时应用 **`.py`** 一次写回 STEP+GLB，或 LFS 拉齐后再对 STEP 加 **`--kind assembly`**。
+
+---
+
+### 2026-05-12：`vtkmodules` 导入失败 + STEP 导出修复
+
+**cwd:** `/Users/shenzhi/things/work/codes/text-to-cad`
+
+**现象：** `./.venv/bin/python .agents/skills/cad/scripts/step someTestCases/furniture/wardrobe1/wardrobe1_gen.py` 在 `from build123d import *` 链上报错：`Failed to load vtkCommonDataModel` / `No module named vtkmodules.vtkCommonTransforms`（或 `vtkCommonTransforms` 与 `vtkCommonCore` 不兼容）。
+
+**根因：** **`requirements.txt` 中同时列出 PyPI `vtk` 与 `build123d`（经 `cadquery-ocp` 自带 vtkmodules）**，在 macOS arm64 上易留下成对的 `vtkFoo.so` + `vtkFoo.cpython-39-darwin.so`，加载器选错二进制即崩。
+
+**代码修复：**
+
+- **`.agents/skills/cad/requirements.txt`** — 去掉独立 **`vtk`** 行并注释说明原因。
+- **`scripts/common/step_export.py`** — 不再从 `build123d.exporters3d` 导入已不存在的 **`APIHeaderSection_MakeHeader`**，与当前 build123d `export_step` 一致省略 AP242 header 段。
+
+**环境修复：**
+
+```bash
+./.venv/bin/pip uninstall -y vtk
+./.venv/bin/pip install --force-reinstall cadquery-ocp==7.7.2 build123d==0.8.0
+```
+
+**验证：**
+
+```bash
+./.venv/bin/python .agents/skills/cad/scripts/step someTestCases/furniture/wardrobe1/wardrobe1_gen.py
+# → generated part STEP: …/wardrobe1_gen.step
+```
+
+产物 **`wardrobe1_gen.step`**（≈211 KB）与 **`.wardrobe1_gen.step.glb`**（≈124 KB，`glTF` 头）为真实二进制。
+

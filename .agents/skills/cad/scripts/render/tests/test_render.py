@@ -458,7 +458,7 @@ class RenderTests(unittest.TestCase):
             render_cli.render_json_result(["list", str(step_path)])
         message = str(context.exception)
         self.assertIn("stale", message)
-        self.assertIn("\nRegenerate STEP artifacts with the following command using the CAD skill:", message)
+        self.assertIn("\nRegenerate using the CAD skill (from repo root), for example:", message)
         self.assertNotIn("scripts.step", message)
 
     def test_render_accepts_direct_valid_glb_input(self) -> None:

@@ -1,7 +1,12 @@
+# PyPI package "vtk" must NOT be listed here: cadquery-ocp (pulled in by build123d) already
+# ships vtkmodules + OpenCascade dylibs under vtkmodules/.dylibs. Installing "vtk" as well
+# on macOS arm64 often yields duplicate vtkmodules/*.so pairs and import errors such as
+# "No module named vtkmodules.vtkCommonTransforms" or vtkCommonCore mismatch. If you already
+# double-installed, run: pip uninstall -y vtk && pip install --force-reinstall cadquery-ocp
+# (or recreate the venv from this file only).
 build123d
 ezdxf
 numpy
 pillow
 playwright
 trimesh
-vtk

@@ -101,7 +101,6 @@ def export_xcaf_doc_step_scene(
     originating_system: str = "build123d",
 ) -> LoadedStepScene:
     from build123d.exporters3d import (
-        APIHeaderSection_MakeHeader,
         IFSelect_ReturnStatus,
         IGESControl_Controller,
         Interface_Static,
@@ -112,7 +111,6 @@ def export_xcaf_doc_step_scene(
         STEPCAFControl_Writer,
         STEPControl_Controller,
         STEPControl_StepModelType,
-        TCollection_HAsciiString,
         XSControl_WorkSession,
     )
 
@@ -129,10 +127,9 @@ def export_xcaf_doc_step_scene(
     writer.SetLayerMode(True)
     writer.SetNameMode(True)
 
-    header = APIHeaderSection_MakeHeader(writer.Writer().Model())
-    if label:
-        header.SetName(TCollection_HAsciiString(label))
-    header.SetOriginatingSystem(TCollection_HAsciiString(originating_system))
+    # STEP AP242 header (label / originating_system kwargs) is not wired here: upstream
+    # build123d dropped APIHeaderSection re-exports from exporters3d for current OCP
+    # wheels; match build123d.export_step (header block intentionally omitted).
 
     STEPCAFControl_Controller.Init_s()
     STEPControl_Controller.Init_s()

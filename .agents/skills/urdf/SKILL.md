@@ -9,7 +9,7 @@ Use this skill for robot description outputs. URDF work is intentionally separat
 
 Consumer-specific metadata is allowed when a downstream UI or simulator adapter expects it. Treat that metadata as generator-owned extension data rather than standard URDF.
 
-Defer CAD handoff details to the CAD skill: read `.agents/skills/cad/SKILL.md`, then only load its `references/rendering-and-explorer.md` when a URDF needs a CAD Explorer link. If the local CAD skill is unavailable, use [cad-skill](https://github.com/earthtojake/cad-skill) as the fallback reference. Keep URDF-specific generation and `explorer_metadata` contracts in this skill.
+Defer CAD handoff details to the CAD skill: read `.agents/skills/cad/SKILL.md`, then only load `.agents/skills/cad/references/pipeline-reference.md` (CAD Explorer section) when a URDF needs a CAD Explorer link. If the local CAD skill is unavailable, use [cad-skill](https://github.com/earthtojake/cad-skill) as the fallback reference. Keep URDF-specific generation and `explorer_metadata` contracts in this skill.
 
 ## Workflow
 

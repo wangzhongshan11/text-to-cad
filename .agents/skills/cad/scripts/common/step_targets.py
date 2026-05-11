@@ -12,7 +12,13 @@ from common.selector_types import SelectorBundle
 
 STEP_SUFFIXES = (".step", ".stp")
 REGENERATE_STEP_COMMAND = "python scripts/step"
-REGENERATE_STEP_PROMPT = "Regenerate STEP artifacts with the following command using the CAD skill:"
+REGENERATE_STEP_PROMPT = (
+    "Regenerate using the CAD skill (from repo root), for example:\n"
+    "  ./.venv/bin/python .agents/skills/cad/scripts/step path/to/generator.py\n"
+    "Prefer the owning .py so STEP and the hidden .<basename>.step.glb are written together. "
+    "For a native .step only, add --kind part or --kind assembly. "
+    "If STEP/GLB are Git LFS pointers, run: git lfs pull"
+)
 
 
 class CadRefError(RuntimeError):

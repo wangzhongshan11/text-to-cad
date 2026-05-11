@@ -18,7 +18,7 @@ Use this skill after a robot URDF exists and the task needs local motion behavio
 
 ## CAD Explorer Handoff
 
-Read `.agents/skills/cad/SKILL.md`, then only load its `references/rendering-and-explorer.md` when a task needs an Explorer URL. If unavailable, use [cad-skill](https://github.com/earthtojake/cad-skill). Do not duplicate Explorer startup or URL syntax in this skill. Link the repo-local `.urdf` when motion artifacts or URDF targets were generated or changed, or when the user asks for browser review. Keep motion-specific Explorer metadata and motion-server behavior here.
+Read `.agents/skills/cad/SKILL.md`, then only load `.agents/skills/cad/references/pipeline-reference.md` (CAD Explorer section) when a task needs an Explorer URL. If unavailable, use [cad-skill](https://github.com/earthtojake/cad-skill). Do not duplicate Explorer startup or URL syntax in this skill. Link the repo-local `.urdf` when motion artifacts or URDF targets were generated or changed, or when the user asks for browser review. Keep motion-specific Explorer metadata and motion-server behavior here.
 
 ## Commands
 

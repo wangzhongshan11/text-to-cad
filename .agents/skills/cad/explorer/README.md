@@ -7,7 +7,7 @@ This folder contains the CAD Explorer web app. CAD Explorer is read-only with re
 ## Prompt Workflow
 
 - CAD Explorer discovers displayable entries by scanning `EXPLORER_ROOT_DIR`, defaulting to the Vite process's current working directory when unset or empty, then loads package-local render assets and generated URDF/authored DXF XML/text from that tree.
-- Prompt-ready `@cad[...]` refs are expected output from the workspace. Accepted CLI inspection forms are summarized in [inspection and validation](../references/inspection-and-validation.md).
+- Prompt-ready `@cad[...]` refs are expected output from the workspace. Accepted CLI inspection forms are summarized in [pipeline reference — inspection](../references/pipeline-reference.md#4-inspection-and-validation).
 - Common copied ref shapes include whole entries, occurrences, shape/face/edge selectors, and grouped same-occurrence selectors, such as `@cad[<workspace-relative-cad-path>]`, `@cad[<workspace-relative-cad-path>#o1.2]`, `@cad[<workspace-relative-cad-path>#f12]`, and `@cad[<workspace-relative-cad-path>#o1.2.f12,f13,e7]`.
 - The path inside `@cad[...]` is relative to the Vite process's current working directory and omits `.step` or `.stp`.
 - Generated assembly views load the embedded assembly topology index first. STEP generation also embeds full face and edge selector topology in the same GLB.

@@ -7,7 +7,12 @@ export const DEFAULT_EXPLORER_ROOT_DIR = "";
 const SOURCE_EXTENSIONS = new Set([".step", ".stp", ".stl", ".3mf", ".dxf", ".urdf"]);
 const STEP_TOPOLOGY_EXTENSION = "STEP_topology";
 const REGENERATE_STEP_COMMAND = "python scripts/step";
-const REGENERATE_STEP_PROMPT = "Regenerate STEP artifacts with the following command using the CAD skill:";
+const REGENERATE_STEP_PROMPT =
+  "Regenerate using the CAD skill (from repo root), for example:\n" +
+  "  ./.venv/bin/python .agents/skills/cad/scripts/step path/to/generator.py\n" +
+  "Prefer the owning .py so STEP and the hidden .<basename>.step.glb are written together. " +
+  "For a native .step only, add --kind part or --kind assembly. " +
+  "If STEP/GLB are Git LFS pointers, run: git lfs pull";
 export const EXPLORER_SKIPPED_DIRECTORIES = new Set([
   ".agents",
   ".cache",

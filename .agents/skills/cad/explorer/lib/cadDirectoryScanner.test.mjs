@@ -84,7 +84,7 @@ function entryByFile(catalog, file) {
 function assertStepArtifactError(entry, code) {
   assert.equal(entry.stepArtifact.ok, false);
   assert.equal(entry.stepArtifact.error.code, code);
-  assert.match(entry.stepArtifact.error.message, /\.\nRegenerate STEP artifacts with the following command using the CAD skill:/);
+  assert.match(entry.stepArtifact.error.message, /\.\nRegenerate using the CAD skill \(from repo root\), for example:/);
   assert.equal(entry.stepArtifact.error.regenerateCommand, "python scripts/step");
   assert.deepEqual(entry.assets, {});
 }
