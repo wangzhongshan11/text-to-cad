@@ -59,6 +59,8 @@ python scripts/step ...
 python scripts/inspect ...
 python scripts/render ...
 python scripts/dxf ...
+python scripts/transpile <spec.json> [-o output.py] [--check]
+python scripts/assembly_from_spec.py <path/to/name_assembly.json>   # transpile + STEP + .glb sidecar
 npm --prefix explorer run dev
 npm --prefix explorer run dev:ensure -- --file path/to/model.step
 ```
@@ -104,5 +106,6 @@ Load these files only when their trigger applies:
 - `references/supported-exports.md` — secondary STL/3MF sidecar workflows.
 - `references/build123d-modeling.md` — build123d modeling patterns, topology, selectors, features, assemblies.
 - `references/repair-loop.md` — diagnosis and repair procedures.
+- `references/model-decomposition-assembly-spec.md` — model decomposition & assembly JSON (`meta`, `parts`, `mates`), box/cylinder primitives, joint ids (`s:` surface Rigid, `rv:` surface Revolute, `c:` custom), and mate wiring. Use `scripts/transpile` to convert a spec JSON to a build123d Python script for the harness.
 
 Final responses should include generated files, CAD Explorer links, validation actually run, assumptions, and caveats. Use `references/inspection-and-validation.md` for report structure.

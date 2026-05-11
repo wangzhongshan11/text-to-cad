@@ -240,3 +240,7 @@ Positioning: not applicable beyond centered part-local origin.
 ```
 
 If a mate or alignment was intended but not checked, say `not checked`; do not imply success.
+
+## Declarative assembly specs (schema / transpilers)
+
+For **JSON-first** model decomposition and assembly (`meta` / `parts` / `mates`), use `model-decomposition-assembly-spec.md`. `positioning.md` remains the general guide for datum choice and CLI validation after STEP generation.

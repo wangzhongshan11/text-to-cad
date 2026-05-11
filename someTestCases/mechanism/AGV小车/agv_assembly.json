@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "units": "mm",
+    "angleUnit": "deg",
+    "title": "AGV 小车（示意）",
+    "notes": "依据 preview.png 典型仓储 AGV：低矮底盘、四角驱动轮、后部载货立柱示意。尺寸为示意 mm；关节使用 s/si 无翻转堆叠。底盘为装配根节点。"
+  },
+  "parts": [
+    { "id": "chassis", "primitive": { "kind": "box", "size": [920, 620, 140] } },
+    { "id": "wheel_fl", "primitive": { "kind": "cylinder", "radius": 75, "height": 55 } },
+    { "id": "wheel_fr", "primitive": { "kind": "cylinder", "radius": 75, "height": 55 } },
+    { "id": "wheel_rl", "primitive": { "kind": "cylinder", "radius": 75, "height": 55 } },
+    { "id": "wheel_rr", "primitive": { "kind": "cylinder", "radius": 75, "height": 55 } },
+    { "id": "mast", "primitive": { "kind": "box", "size": [260, 240, 420] } }
+  ],
+  "mates": [
+    {
+      "partA": "chassis", "jointA": { "id": "rg:si:-1:-1:-1" },
+      "partB": "wheel_fl", "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "partA": "chassis", "jointA": { "id": "rg:si:1:-1:-1" },
+      "partB": "wheel_fr", "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "partA": "chassis", "jointA": { "id": "rg:si:-1:1:-1" },
+      "partB": "wheel_rl", "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "partA": "chassis", "jointA": { "id": "rg:si:1:1:-1" },
+      "partB": "wheel_rr", "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "partA": "chassis", "jointA": { "id": "rg:s:0:-1/2:1" },
+      "partB": "mast", "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    }
+  ]
+}

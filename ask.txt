@@ -1,0 +1,298 @@
+Question:
+
+本项目是基于build123d进行模型生成/装配的harness项目，主要是生成build123d的python建模脚本和urdf，发现生成/装配模型仍然依赖的是纯几何位置计算pos/rot或者build123d的Joint（一种位置计算的语法糖），这种让ai去做几何位置计算的方式，上限太低，我们希望前期先改成一个通用的基于基本几何体的模型生成/代理/约束装配agents，那就必然需要进行引入约束和约束求解器，对于ai来说语义化的mate肯定是更好的，目标流程是ai分析agent（负责解析出目标模型的子模型（基础几何体）组成bom，和约束关系mates） -》ai基于bom和mates生成python建模脚本，当前我目前的工作是确定好装配约束技术方案，我目前的想法是对于几何体暴露离散化connector + 多个语义化mate（比如onshape的语义化mate），对于两个模型之间的装配首先采用多个mates（比如小面在大面，且某边和大面边共边，不会让ai通过一个mate去实现，而是让ai首先考虑用多个mates去约束，如果实在时欠约束，那就需要去通过离散化的connector去补齐剩下的自由度），因此需要引入这种多约束的约束求解器，超详细分析这种方案能否覆盖像柜子/机械臂/小车等等其他一般通用模型的case？有没有更优的方案？通过这种方案实现的效果和现在相比能有优化吗？采用那种约束求解器最好？
+
+给出超超超详细全面的分析
+
+
+Answer:
+我已经摸清了当前 harness 的核心定位与正在面对的痛点。下面给你一份超超超详细的方案分析。我会按"覆盖性 → 与现状对比 → 求解器选型 → 风险与替代方案 → 落地建议"的顺序展开，并尽量贴合 build123d / OCP / STEP-first 的工程实际。
+
+1. 先把目标问题严格定义清楚
+你现在的 pipeline 大致是：
+
+
+用户 prose 
+ → AI 生成 build123d Python（pos/rot/Joint 直接算出来） 
+ → gen_step / 校验
+痛点本质上是两类「上限」问题：
+
+数值几何位姿计算上限低：让 LLM 直接产出 Location((dx,dy,dz), (rx,ry,rz)) 是把"语义→数值"的转换全压给模型；任何参数变化（厚度、间隙、孔位、旋转中心）都要 LLM 重新心算 4×4 变换。错位、镜像、轴向反、欧拉角顺序错误是常见 failure mode。
+build123d Joint 的语义不够丰富：RigidJoint / RevoluteJoint / LinearJoint / CylindricalJoint / BallJoint 只是"在两个 frame 上贴一个预定义自由度"。没有"面贴面 + 边对齐 + 孔同轴 + 偏置 X mm"这种语义复合约束，也没有约束求解（每个 connect_to() 立刻把 moving part 一次性 snap 过去）。本质上 build123d Joint = 单约束 + 直接矩阵合成，不是约束系统。
+你提的方案核心是：
+
+几何体侧：暴露离散 connector（点/线/面/轴/坐标系）+ 一组 语义化 mate（类似 Onshape Fastened/Revolute/Cylindrical/Slider/Planar/Ball/Parallel/Tangent/Pin-Slot）。
+装配侧：多 mate 组合先表达意图，欠约束部分用 connector + 数值参数补齐。
+底层：引入多约束求解器做实际位姿求解。
+下面分维度评估这套方案能否覆盖通用模型。
+
+2. 用真实场景做"覆盖性"压力测试
+我挑你提的三类典型 + 一些更难的 case，逐一演练用「语义 mate 多约束」是否可表达、是否欠约束/过约束。
+
+2.1 柜子 / 板式家具（box-furniture）
+典型零件：side panel, top, bottom, back, shelf, door, hinge, drawer slide, knob, screw, dowel, cam-lock。
+
+典型语义 mate：
+
+Coincident(face_A, face_B) — 板与板贴面
+Coplanar(edge_A, edge_B) — 边对齐
+Flush(face_A, face_B, side=+X) — 外侧齐平
+Distance(face_A, face_B, d=18mm) — 板厚偏置
+ConcentricAxis(hole_axis, dowel_axis) — 销孔同轴
+Parallel(edge, edge) / Perpendicular(face, face) — 直角箱体强约束
+Revolute(hinge_axis_door, hinge_axis_frame, angle=θ) — 门铰链
+Slider(rail_axis, drawer_axis, s=stroke) — 抽屉
+结论：柜子 99% 由"面贴面 + 边对齐 + 距离偏置 + 同轴"构成，完全在你方案的语义集合内，且通常是良约束（板的 6DoF 被 3 个面级约束很自然地锁住）。LLM 只需要描述"这块板贴在那块板的内侧、上沿与顶板上沿齐平"，求解器就能算出 Location。
+
+潜在问题：
+
+当板厚或柜深变化时，"齐平"和"贴面"必须重新求解。这正是你方案的优势（参数化能跟着走，不像 LLM 写死的 Location）。
+镜像件（左右侧板）：需要明确 connector 上的法线方向，否则求解器可能把面"翻过来"贴。需要定向约束（mate 默认带 anti-align/align flag，类似 Onshape 的 mate connector ±Z）。
+2.2 机械臂（serial manipulator）
+典型零件：base, link_i, joint housing, motor, reducer, end-effector, cable carrier。
+
+典型语义 mate：
+
+每个 link-link 的 Revolute(axis_parent, axis_child, θ_i) — 主关节
+Coaxial(motor_shaft, joint_axis) — 电机装到关节
+Flush(motor_flange, housing_face) + BoltPattern(circle_hole_set, circle_hole_set) — 法兰对接
+Rigid(end_effector_mount, link_n_tool_frame) — 末端工具固定
+结论：覆盖性良好，但有两个关键扩展需求：
+
+Pattern / Group mate（重要）：法兰螺孔 PCD 必须以"孔阵列对孔阵列 + 一个 clocking 自由度"的方式表达，而不是逐孔 Coincident（否则 N 个 Coincident 会过约束或迫使 solver 处理冗余约束）。Onshape 用 "Fastened with mate connector + 1 angular DOF" 解决，你需要在 mate 里把"圆周阵列对齐"做成原语，否则 LLM 又会回到"逐孔列约束"的低质量做法。
+关节 chain 的全局一致性：N 自由度 manipulator 不需要"求解器保持 N 个 θ 的姿态"（这是 FK，不是约束求解），但导出一个 static STEP/URDF 的零位姿态，求解器+顺序 connect_to 都能完成。注意：URDF 输出本身就是把 joint axis 和零位写出来，约束求解器在导出 URDF 之前完成"零位姿"的位姿即可，运行时姿态交给 ROS/MoveIt（你 robot-motion skill 已经在做）。
+2.3 小车 / 移动平台
+典型零件：chassis, wheel ×4, motor, suspension arm, axle, sensor mount。
+
+典型语义 mate：
+
+Coaxial(wheel_axis, axle_axis) + Distance — 轮装在轴端
+Symmetric(wheel_L, wheel_R, plane=YZ) — 左右对称
+Revolute(suspension_pivot) — 摇臂
+传感器 Rigid + offset — 雷达/相机支架
+Symmetric / Mirror 是关键扩展原语。Onshape 没有强对称 mate（用 derived part 处理），但对 LLM 来说"对称"是高频语义，强烈建议加进 mate 集合。
+
+2.4 更难的压力测试
+场景	是否仍可被多 mate 覆盖	备注
+螺纹连接（螺丝穿板拧入）	✅ Coaxial + Distance(headface↔topface, 0)	螺纹本身不是约束问题
+齿轮啮合	⚠️ 需 Gear(axis1, axis2, ratio, module) 复合 mate；纯几何 Coaxial+Distance 不够	静态装配可用 Coplanar pitch circle + Tangent
+凸轮/连杆（4-bar）	❌ 平面闭环机构，需要真正闭环约束求解；单链 Joint 算不出	必须有 solver；推荐 PlanarSketch-like 2D solver
+皮带/链条绕过多个轮	❌ 拓扑+长度约束	不在 MVP 范围
+可挠性/cable routing	❌ 非刚体	不在范围
+螺栓花键/D 型轴	✅ Coaxial + 一个 angular alignment（与 D 面平行）	需要"angular align by face normal"
+带卡扣/snap-fit 自定位特征	✅ 等价于 Coincident face + Coincident face	几何细节交给零件设计
+嵌套对称（如 4 个相同支架）	✅ 阵列 mate / mirror mate	需要 pattern primitive
+总体覆盖结论：你的方案能覆盖 80–90% 的"装配体由刚体 + 标准低副 + 平面/同轴/距离约束"组成的通用机械产品（柜子、机械臂、小车、夹具、3C 外壳、桌椅、货架、简单工装）。覆盖不了的是：闭环平面机构、柔性体、齿轮链/传动比、纺织/绳索类拓扑约束。这些第一阶段不应该追求，单独 fallback 到 Joint/Location 即可。
+
+3. 与现状（Location + build123d Joint）相比能优化什么
+我把对比拆成 生成质量、可维护性、求解器能力、与 build123d 的契合度 四轴。
+
+3.1 生成质量（LLM 出错率）
+维度	现状	多约束 mate 方案
+LLM 需要直接产出的数值	6 个/零件（xyz+欧拉）×N	0（除补齐 DoF 的 distance/angle 参数）
+"镜像/方向反" 类错误	高频	几乎消除（mate 自带 align flag）
+参数变化重算	LLM 必须重写 Location	求解器自动重算
+欠约束被 LLM 隐瞒	经常发生（看起来对，换参数就崩）	求解器报告 rank deficiency，可强制反馈
+过约束/冲突	通常静默	求解器报告冲突约束，可定位
+这是最大的收益：约束求解器的 DoF 分析变成 LLM 输出的"硬校验"，等同于给 LLM 加了 type system。
+
+3.2 可维护性
+现状：改一个尺寸 → 多个 Location 要联动改 → LLM 容易漏。
+方案：mate 表达意图，参数变化自动传播。和你 skill 里强调的 "named parameters / part-local datums" 哲学完全一致，是其自然延伸。
+3.3 build123d Joint vs 语义 Mate
+build123d 的 Joint 设计理念其实已经很接近 mate——RigidJoint.connect_to() 等价于 "Fastened mate"，RevoluteJoint 等价于 "Revolute mate"。真正缺的是：
+
+没有 mate 组合（多个 joint 同时作用、互相协调）。connect_to 是命令式、立刻 snap，不能"先收集所有约束再一起解"。
+没有 平面/距离/平行/对称 这些降维约束（只指定部分 DoF）。
+没有欠约束探测和冗余约束剔除。
+Connector 体系（mate connector 概念）缺失。Onshape 的 mate connector = 任意位置 + 任意朝向的本地坐标系 token，你说的"几何体暴露离散化 connector"正是补这一层。
+所以正确定位：你的新层不是"取代"build123d Joint，而是在 build123d Joint 之上做一个声明式约束 DSL + 求解器，最终编译回：
+
+简单链式装配 → 直接 emit RigidJoint.connect_to()（保留 build123d 原生体验，导出 STEP 没有副作用）；
+真正欠约束 / 多约束耦合 → emit 一段计算好的 Location(...)，并附 mate 注释。
+这点很关键，避免和现有 SKILL.md 里"author in source / validate after generation"的契约冲突。
+
+3.4 与现有 inspection 工作流的协同
+你 scripts/inspect mate 已经能做"读 STEP 算 mate delta"。新方案天然产出**"约束 ground truth"——求解后每个 mate 的 residual 应当 ≈ 0。可以把它作为生成阶段的内置 gate**，比 inspect mate 更早暴露问题（不用先生成 STEP 再去测量）。
+
+4. 求解器选型（重点）
+约束系统按数学性质分两类：
+
+几何约束求解（Variational / DoF-based）：把 6N 个刚体自由度 + 约束方程组成方程组，求解 Location。这是 CAD assembly 的主流。
+非线性最小化（Optimization-based）：把每个 mate 写成 cost，整体最小化。鲁棒但慢，常用于 SLAM/Pose-Graph。
+机械装配两者都用得上，但选型差别很大。下面我列真实可用的候选并打分。
+
+4.1 候选一览
+求解器	类型	语言/绑定	许可	维度	适配你场景	备注
+PlanarSolvespace (python-solvespace)	几何变分（牛顿+DoF 分析）	C + Python wheel	GPLv3	2D + 3D（3D 较弱）	⭐⭐⭐⭐	SolveSpace 的求解核心，开源 CAD 装配求解器代表
+OpenCascade (OCCT) / OCP 自带	无原生 assembly mate solver	—	LGPL	—	⭐	OCCT 没有装配约束求解器，只有几何运算
+FreeCAD Assembly3 / Assembly4 求解器	基于 SolveSpace（A3）/ App::LinkGroup（A4）	Python in FreeCAD	LGPL	3D 良好	⭐⭐⭐⭐	A3 用的就是 solvespace，可借鉴
+OndselSolver (Ondsel/FreeCAD 新一代)	多体动力学+装配，基于 MBDyn 思路	C++ + Python	LGPL	3D 强	⭐⭐⭐⭐⭐	2024–2025 活跃，专为 CAD assembly 设计，已被 FreeCAD Assembly Workbench 选中
+casadi + 自写残差	通用 NLP/牛顿	Python	LGPL	任意	⭐⭐⭐	灵活但要自己写 Jacobian 和 DoF 分析
+scipy.optimize.least_squares	非线性最小二乘	Python	BSD	任意	⭐⭐	适合 prototype；不做 DoF rank 分析
+drake (Robotics)	多体 + IK solver (SNOPT/IPOPT)	C++/Python	BSD	3D 强	⭐⭐⭐	偏机器人 IK，重型依赖
+pinocchio	rigid body + URDF	C++/Python	BSD	3D	⭐⭐	强在动力学，不在 CAD mate
+PythonOCC + 自写约束层	—	Python	LGPL	—	⭐	同 OCCT，无现成 solver
+Onshape API（云）	商用	REST	闭源	—	⭐	不可本地离线，且许可不允许嵌入
+自研：Gauss-Newton + 旋量 (se(3)) 残差	自写	Python	自有	3D	⭐⭐⭐⭐	MVP 可控；后续可换 OndselSolver
+4.2 推荐组合（按阶段）
+阶段 0（POC，2–4 周）：
+
+用 scipy.optimize.least_squares（Levenberg-Marquardt） + 手写 mate residual。
+每个刚体参数化为 (t ∈ R³, q ∈ S³ unit-quat)，cost = Σ ||residual_i||²。
+用 numpy 数值 Jacobian 起步；DoF 分析用 J 的 SVD 看零空间维度。
+优点：纯 Python，零外部依赖（你 venv 已经有 numpy/scipy），LLM 看得懂。
+缺点：大装配（>50 体）慢；无符号 DoF 报告。
+阶段 1（生产，1–2 个月）：
+
+切换到 python-solvespace（Solvespace 内核 Python 绑定）或 OndselSolver Python binding。
+二者都做了几何谓词（点-面距离、轴-轴角度等）和 DoF 分析 + 冗余检测，正是你需要的。
+首选 OndselSolver：维护活跃、专门面向 CAD assembly、API 干净（基于 Ondsel team 在 FreeCAD 重写 assembly 时的经验）；许可 LGPL，可作为 Python 扩展用。
+次选 python-solvespace：成熟稳定但 GPLv3 会传染你的 harness（如果你的 harness 是闭源的就慎用）。
+阶段 2（机器人/IK 复用）：
+
+如果未来 mate 要支持"达到末端执行器目标位姿"这类 IK-flavored 约束，加 drake 或 pinocchio 做混合求解；但别一开始就上，太重。
+4.3 关于"解析 vs 数值"的工程取舍
+机械装配里 80% 的子图实际上是可以解析求解的局部链（一个 Coaxial + 一个 Coincident face = 等价于一个 cylindrical joint，闭式解）。最优工程实现是：
+
+先做约束图分割（connected components on bodies-mates graph）。
+每个分量先用符号 reducer：识别"link 链 + 单约束"模式，直接 emit build123d Joint 的 connect_to()。
+剩下的残余子图（多约束耦合 / 闭环）才丢给数值求解器。
+这套"symbolic-first, numeric-fallback"是 Onshape、SolidWorks、FreeCAD Assembly3 都在做的实践，你完全可以照抄。它的关键好处：生成出来的 build123d 代码仍然是人类可读的 RigidJoint/RevoluteJoint 链，而不是一堆"求解器算出的 magic Location"。这让 SKILL.md 的"source-level positioning"哲学不被破坏。
+
+5. 你方案里需要补的几个关键设计点
+下面是几个你描述里没强调、但实施时一定会踩坑的点：
+
+5.1 Mate Connector 的"定向"问题
+Mate connector ≠ 一个点，是一个有朝向的本地坐标系 (Plane + 主轴 + 次轴)。Onshape 的 mate UI 隐含了 ±Z 翻转和 90° 旋转的 4 种 "reorient" 操作。你的 mate 必须把这两个标志显式暴露：
+
+Mate.fastened(
+    a=part_A.connector["top_face_center"],
+    b=part_B.connector["bottom_face_center"],
+    align="anti_normal",   # 或 "normal"
+    rotate=0,              # 0/90/180/270
+    offset=(0, 0, gap),
+)
+否则 LLM 会经常生成"零件被翻进对方实体里"的求解结果。
+
+5.2 Connector 的离散化策略
+你说"几何体暴露离散化 connector"，需要明确暴露哪些：
+
+每个面的形心 + 法线（top/bottom/left/right/front/back，box 默认 6 个）。
+每个圆柱面/孔的轴线 endpoints。
+每条直边的两个端点 + 中点。
+特征级 connector：bolt-circle 中心、pocket 中心、boss 顶面中心。
+用户/LLM 命名的 datum（生成器在零件代码里注册）。
+强烈建议用层次化命名空间：part.face.top.center、part.hole["m4_lid_1"].axis、part.feature["bolt_circle_pcd40"].axis。这让 LLM 在写 mate 时几乎不会编造不存在的 connector（你可以在 prompt 里把 connector 列表喂给它）。
+
+5.3 DoF 分析必须可读地反馈给 LLM
+求解后输出三类信息：
+
+Mates: 5 declared
+DoF analysis: rank(J)=5, residual=8.7e-9 OK
+Body 'shelf_3': fully constrained
+Body 'door_R':  underconstrained (1 DoF: rotation about hinge axis)
+  → suggest: add Distance or Angle mate, or accept as RevoluteJoint
+Body 'knob_2':  overconstrained (rank deficiency on Coaxial+Coplanar pair)
+  → conflicting: mate#3 (Coplanar face) and mate#4 (Distance=2)
+这是整个方案的核心价值之一——把"几何对错"翻译成"约束语义对错"，LLM 才能 self-repair。
+
+5.4 约束的 intent 与 residual tolerance
+每个 mate 要带三个东西：
+
+kind（fastened / revolute / coaxial / coincident-face / distance / parallel / symmetric / pattern / gear / tangent / pin-slot / planar / ball ...）
+operands（两个 connector 引用）
+tolerance（默认 1e-6 mm；distance mate 必须显式数值）
+求解后把每个 mate 的 residual 写进 assembly.cad-explorer.json 一类 sidecar，配合你已有的 inspect mate 形成**"声明 + 求解 + 后验"三段闭环**。
+
+5.5 与 URDF 的对接
+URDF 的 joint 必须知道：parent link, child link, axis, origin (xyz, rpy)。你的 mate 求解结果天然提供：
+
+Revolute / CylindricalJoint mate → URDF revolute / continuous
+Slider mate → URDF prismatic
+Fastened mate → URDF fixed
+Ball mate → URDF 没有原生（用 3 个 revolute 替代或自定义 floating）
+求解后，关节 origin 取 mate connector 在 parent link 局部坐标的位姿——这正是你 robot-motion skill 现在最难自动化的地方，会显著简化 URDF 生成。
+
+6. 有没有更优 / 更简单的替代方案？
+我列 5 种替代或补充思路，按"和你方案相比"打分：
+
+替代 A：完全不做约束求解，给 LLM 一组装配宏（macro）
+例如：
+
+mount_panel(panel, on=cabinet.face("inside_left"), flush_top=True, flush_front=True, depth_offset=18)
+attach_motor(motor, to=joint_housing, bolt_pattern="m4x4_pcd40")
+宏内部用 build123d Joint + 算好的偏置实现，LLM 只调用宏。
+
+优点：实现成本最低；LLM 几乎不可能错。
+缺点：宏覆盖不了的场景必须 fallback 到 Location；本质是"把 LLM 的几何知识硬编码到库里"，通用性低，每加一类零件就要扩库。
+结论：作为短期补丁很有价值，可与你的方案并行——常见装配走宏，奇怪装配走 mate solver。
+替代 B：让 LLM 写草图级 2D 约束，3D 自动 lift
+模仿 SolidWorks 的"装配草图"：先在 XY 平面做 2D 约束求解（点重合、距离、平行、相切），再把每个零件的 frame lift 到 3D。
+
+优点：2D solver 成熟（python-solvespace 强项），绝大多数柜子/小车 layout 本质是 2D。
+缺点：3D 自由布局（机械臂、空中支架）退化严重。
+结论：可作为柜子类专用快路径，不能当主方案。
+替代 C：基于 SDF / signed distance 的物理放置
+每个零件给一个 SDF，"贴合"=最小化 SDF 接触距离。物理直觉强但完全不语义，LLM 反而更难表达"上沿齐平"。不推荐。
+
+替代 D：直接借用 Onshape FeatureScript 的 mate 语义作为 DSL
+把 Onshape 的 mate 类型表 1:1 复制成你的 DSL，求解器自研或用 OndselSolver。这是最务实的路径，因为：
+
+Onshape 的 mate 集合经过商用打磨，覆盖性已被验证。
+LLM 训练语料里 Onshape/SolidWorks mate 术语丰富，prompt-friendly。
+与你的"语义化 mate"提法天然契合。
+强烈建议把 Onshape 的 9 种 mate 作为你 v1 的 mate 清单： Fastened, Revolute, Slider, Cylindrical, Pin-slot, Planar, Ball, Parallel, Tangent，外加 Distance / Angle / Symmetric / Pattern / Coincident(face/edge/vertex) 这几个补充原语。
+
+替代 E：LLM-in-the-loop 的"求解器即 tool"
+不要让 LLM 一次写出完整 mate 列表 + 参数，而是让 LLM 增量调用工具：
+
+assembly.add_part(...)
+assembly.add_mate(kind, a, b, ...)
+assembly.solve() → 返回 DoF 报告
+assembly.suggest_mate(body=...) → 求解器根据剩余 DoF 提示候选 mate
+这是 agentic 用法，把求解器变成 LLM 可以"对话"的环境。强烈推荐和你的主方案叠加——它把"LLM 一次性产出 mate 列表"的脆弱性降到最低。和你 harness 里 "AI 分析 agent → AI 生成脚本"的两阶段设计天然契合，可以让"分析 agent"直接是 tool-calling 形式。
+
+7. 与现状对比：定量预期
+基于公开经验（Onshape / FreeCAD A3 / SolidWorks 用户行为研究）和 LLM 在几何任务上的失败模式，保守估计采用本方案后：
+
+指标	现状（Location/Joint）	多约束 mate + solver
+首次生成几何位姿正确率（中等装配，10–30 体）	估计 30–50%	估计 75–90%
+参数变化后位姿仍正确率	很低（LLM 必须重写）	接近 100%（求解器重算）
+欠约束被发现率	~0%（静默通过）	~100%（DoF 报告）
+LLM token 用量	高（写一堆 Location + 注释）	中（mate 声明更短）
+单次生成 + 求解延迟	快	+几百 ms ~ 几秒
+对 LLM 模型规模的依赖	强（要"会算"）	弱（只要"会描述"）
+最后一行特别关键：这个方案能让更小、更便宜的模型胜任几何装配任务，因为模型的几何计算被 offload 给了求解器。
+
+8. 落地路线图（具体到本仓库）
+结合你 SKILL.md 和 someTestCases 的约定，建议这样切入：
+
+Phase 0（1–2 周）：DSL + 数值 solver POC
+在 .agents/skills/cad/ 下新增 references/mates.md（语义 mate 清单 + connector 命名规则）。
+新增 Python 模块 cad/assembly_mates.py：定义 Connector, Mate, Assembly.solve()；底层用 scipy.optimize.least_squares。
+让 build123d 零件在生成时注册标准 connector（face center / hole axis / edge midpoint）。
+在 someTestCases/ 选 1 个柜子 + 1 个小机械臂做对照实验，记录到 ITERATION_LOG.md（你 AGENTS.md 强制的过程留痕）。
+Phase 1（3–6 周）：symbolic-first 编译 + 真求解器
+加约束图分割 + 链式装配的 symbolic reducer（emit RigidJoint.connect_to() 链）。
+残余子图接 OndselSolver 或 python-solvespace。
+把 DoF 报告接到 scripts/inspect：新增 inspect dof <assembly.py>。
+在 SKILL.md 里把"author with mates, validate with inspect mate"作为新默认。
+Phase 2（持续）：扩展原语
+加 Pattern / Mirror / Symmetric / BoltPattern 原语。
+URDF 生成器读 mate 树自动产生 joint origin/axis。
+LLM tool-calling 接口（替代 E），让 analysis agent 增量构建装配。
+Phase 3（可选）：高级
+Gear / Belt / Closed-loop 4-bar（专题，按需）。
+与 robot-motion skill 的 IK 联动。
+9. 我对你方案的总体判断（一句话版）
+方向完全对：声明式语义 mate + 离散 connector + 多约束求解，是当前让 LLM 写 CAD 装配最可行的范式，覆盖你列出的柜子/机械臂/小车以及大部分通用刚体装配；关键是不要把它做成"取代 build123d Joint"，而是做成"build123d Joint 之上的 DSL + symbolic-first 编译器 + 数值 solver fallback"，这样既享受约束求解的鲁棒性，又保留你 SKILL.md 里"source-level、可读、可校验"的工程契约。求解器首推 OndselSolver（许可允许、面向 CAD），次选 python-solvespace（GPL 注意），POC 阶段直接用 scipy.least_squares 起步。最大的工程红利不是"算得准"，而是把 DoF 分析变成 LLM 输出的硬校验信号——这是你现状最缺的一环。
+
+如果你想，我可以下一步：
+
+直接起草 references/mates.md 的 mate 类型表和 connector 命名规范，
+或者写一个最小 assembly_mates.py POC（Python+scipy，约 200 行），跑一个柜子例子放到 someTestCases/。
+你想先从哪一步开始？
+
+
+

@@ -182,7 +182,7 @@ def make_finger(is_left=True):
 
 def _joint(part, label, position, z_dir=(0, 0, 1)):
     """Attach a RigidJoint to a part at the given local position and normal."""
-    RigidJoint(label, part, Location(Plane(origin=position, z_dir=z_dir)))
+    RigidJoint(label, part, Location(Plane( =position, z_dir=z_dir)))
 
 def _revolute_joint(part, label, position, axis_vec):
     """Attach a RevoluteJoint to a part."""

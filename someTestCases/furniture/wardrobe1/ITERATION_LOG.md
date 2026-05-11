@@ -288,3 +288,134 @@ and verify that the explicit transforms correctly align them.
 
 All geometry validated correct: dimensions, tier heights, door gaps, back panel
 placement, and handle attachment positions.
+
+---
+
+## Iteration 2: 声明式装配 JSON (wardrobe1_assembly.json) — 2026-05-11
+
+本次使用新开发的模型拆分装配规范（`model-decomposition-assembly-spec.md`）对衣柜进行声明式拆解，生成装配 JSON，并通过 transpiler 生成 build123d 建模脚本。
+
+### 参考图纸尺寸 (preview.png)
+
+| 项目 | 尺寸 |
+|------|------|
+| 总宽 | 1210 mm |
+| 总深 | 460 mm |
+| 总高 | 1760 mm |
+| 挂衣杆长 | ~570 mm（两区各 57 cm） |
+| 左区挂空高 | ~1100 mm |
+| 右区搁板距底 | ~350 mm |
+
+### 零件拆分
+
+| part id | 原语 | 尺寸 | 说明 |
+|---------|------|------|------|
+| `body` | box | 1210×460×1760 | 外轮廓参考体 |
+| `door_l` | box | 607×20×1760 | 左门 |
+| `door_r` | box | 603×20×1760 | 右门 |
+| `rod_l` | cylinder | r=12, h=570 | 左区挂衣杆 |
+| `rod_r` | cylinder | r=12, h=570 | 右区挂衣杆 |
+| `shelf_r` | box | 570×440×18 | 右区搁板 |
+| `drawer_bot` | box | 560×420×290 | 下抽屉 |
+| `drawer_top` | box | 560×420×290 | 上抽屉 |
+
+### Joint 设计决策
+
+- **门**：使用 `rg:s:-1/2:1:0` / `rg:s:1/2:1:0` 定位在前面左/右半，门用 `rg:si:0:-1:0`（背面内法线），两者 frame 同向（`+Z:+X:+Y`），无旋转，门向外凸出 20 mm。
+- **挂衣杆（水平旋转技巧）**：`rg:si:-1:0:7/8`（左壁内法线，z=+X）连接杆的 `rg:si:0:0:-1`（底端内法线，z=+Z）。两者 z 方向不同（+X vs +Z），`connect_to` 自动产生 90° 旋转，使柱形杆从竖直变为水平，沿 +X 轴延伸于左区 x∈[-605,-35]。右区对称用 `rg:si:1:0:7/8`（右壁内法线 z=-X），杆沿 -X 延伸于右区 x∈[35,605]。
+- **搁板**：使用 custom joint `rg:c:1/2:0:-5/8`（归一化坐标，映射到 body 内部 (302.5, 0, -550)），frame `+X:+Y:+Z`，搁板用 `rg:si:0:0:-1`（底面内法线），同帧纯平移。
+- **抽屉**：`rg:si:-1/2:0:-1`（底面内法线偏左）→ 抽屉 `rg:si:0:0:-1`，同帧。上抽屉叠在下抽屉顶面 `rg:s:0:0:1` → `rg:si:0:0:-1`，同帧。
+
+### 工具调用记录
+
+```
+# 1. 生成 JSON（手工设计）
+# 文件：someTestCases/furniture/wardrobe1/wardrobe1_assembly.json
+
+# 2. Transpile（验证 + 生成 .py）
+cd .agents/skills/cad/scripts
+python -m transpile ../../../../someTestCases/furniture/wardrobe1/wardrobe1_assembly.json \
+    -o ../../../../someTestCases/furniture/wardrobe1/wardrobe1_gen.py
+# exit 0 → wrote wardrobe1_gen.py
+```
+
+### 生成文件
+
+- `wardrobe1_assembly.json` — 声明式装配 JSON
+- `wardrobe1_gen.py` — transpiler 生成的 build123d 脚本
+
+### 运行生成脚本（产出 STEP）
+
+要运行生成的脚本并输出 STEP：
+
+```python
+# wardrobe1_gen.py 中的 gen_step() 返回 Compound
+# 在 .venv 中运行：
+import sys; sys.path.insert(0, '.')
+from wardrobe1_gen import gen_step
+from build123d import export_step
+result = gen_step()
+export_step(result, "wardrobe1.step")
+```
+
+或从仓库根：
+```
+# Transpile
+python -m transpile someTestCases/furniture/wardrobe1/wardrobe1_assembly.json
+
+# Run (需要 build123d)
+.venv/Scripts/python someTestCases/furniture/wardrobe1/wardrobe1_assembly.py
+```
+
+### 2026-05-11（第二次）：重写声明式装配 JSON（面板式拆分 + 修复多父节点错误）
+
+**背景：** 旧版 `wardrobe1_assembly.json` 存在两个问题：  
+1. `top_panel` 同时出现在 `left_panel` 和 `right_panel` 的 mate 的 `partB` 字段（多父节点错误）。  
+2. `shelf_lower` 与 `shelf_upper` 使用同一个 joint（`rg:s:1:0:1/2`），两个零件重叠。  
+3. 尺寸与 preview.png（121×46×176 cm）不符（旧值 1600×550×2182）。
+
+**修改内容（`wardrobe1_assembly.json`）：**  
+- 总尺寸改为 1210×460×1760 mm，侧板高度 1724 mm（= 1760-2×18）。  
+- 新增 `mid_panel`（中隔板 18×460×1724，x=0 居中），作为 `top_panel` 的**唯一父节点**，彻底消除多父节点错误。  
+- 替换 `shelf_lower/shelf_upper` 为 `shelf_r`（右区搁板，`right_panel` 内面高度 -5/8）+ `drawer_bot/drawer_top`（左区双抽叠放）。  
+- 挂衣杆通过侧板外法线 joint 驱动 90° 旋转水平（s:±1:0:7/8 → si:0:0:-1）。  
+
+**工具调用：**
+
+```powershell
+# Transpile only（验证 JSON 无误）
+d:\code\text-to-cad\.venv\Scripts\python .agents\skills\cad\scripts\assembly_from_spec.py `
+  someTestCases\furniture\wardrobe1\wardrobe1_assembly.json --no-step
+# exit 0  →  wrote wardrobe1_gen.py
+
+# Full pipeline（生成 STEP + GLB）
+d:\code\text-to-cad\.venv\Scripts\python .agents\skills\cad\scripts\assembly_from_spec.py `
+  someTestCases\furniture\wardrobe1\wardrobe1_assembly.json
+# exit 0
+```
+
+**产物：**  
+- `wardrobe1_assembly.json` — 修正后声明式 JSON（13 零件，12 mates，合法树）  
+- `wardrobe1_gen.py` — transpile 生成（64 行）  
+- `wardrobe1_gen.step` — 211,891 bytes  
+- `.wardrobe1_gen.step.glb` — 134,276 bytes（拓扑 GLB 侧车）
+
+---
+
+### 2026-05-11（第一次）：补全 STEP 拓扑校验所需的 GLB 侧车
+
+**cwd:** `d:\code\text-to-cad\.agents\skills\cad\scripts`
+
+**命令：**
+
+```powershell
+d:\code\text-to-cad\.venv\Scripts\python -m step --kind assembly `
+  "d:\code\text-to-cad\someTestCases\furniture\wardrobe1\wardrobe1_gen.step"
+```
+
+**说明：** 直接以 `.step` 为 `scripts/step` 目标时，CLI 要求 `--kind part` 或 `--kind assembly`；本例为 `Compound` 装配，使用 `--kind assembly`。
+
+**退出码：** 0
+
+**产物：** `someTestCases/furniture/wardrobe1/.wardrobe1_gen.step.glb`（及 STEP 侧车刷新）
+

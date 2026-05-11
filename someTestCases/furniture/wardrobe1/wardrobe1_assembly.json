@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "units": "mm",
+    "angleUnit": "deg",
+    "title": "双门衣柜 wardrobe1（121×46×176 cm）",
+    "notes": "依据 preview.png。总尺寸 1210×460×1760 mm，板厚 18 mm。装配树：bottom_panel 为根；mid_panel（中隔板）居中，同时定位 top_panel（唯一父节点）和 shelf_r；左区挂衣杆+双抽屉，右区挂衣杆+搁板；双门各从对应侧板前面悬挂。"
+  },
+  "parts": [
+    {
+      "id": "bottom_panel",
+      "primitive": { "kind": "box", "size": [1210, 460, 18] },
+      "notes": "底板 1210×460×18，装配根节点"
+    },
+    {
+      "id": "left_panel",
+      "primitive": { "kind": "box", "size": [18, 460, 1724] },
+      "notes": "左侧板 18×460×1724（= 1760-18-18，夹在底板与顶板之间）"
+    },
+    {
+      "id": "right_panel",
+      "primitive": { "kind": "box", "size": [18, 460, 1724] },
+      "notes": "右侧板，同上"
+    },
+    {
+      "id": "back_panel",
+      "primitive": { "kind": "box", "size": [1174, 5, 1724] },
+      "notes": "背板 1174×5×1724（内宽 1210-2×18=1174）"
+    },
+    {
+      "id": "mid_panel",
+      "primitive": { "kind": "box", "size": [18, 460, 1724] },
+      "notes": "中隔板，居于 x=0，同时是 top_panel 的唯一父节点"
+    },
+    {
+      "id": "top_panel",
+      "primitive": { "kind": "box", "size": [1210, 460, 18] },
+      "notes": "顶板 1210×460×18，父节点为 mid_panel（唯一）"
+    },
+    {
+      "id": "rod_l",
+      "primitive": { "kind": "cylinder", "radius": 12, "height": 570 },
+      "notes": "左区挂衣杆 r=12 h=570（57 cm），通过侧板外法线关节旋转为水平"
+    },
+    {
+      "id": "rod_r",
+      "primitive": { "kind": "cylinder", "radius": 12, "height": 570 },
+      "notes": "右区挂衣杆"
+    },
+    {
+      "id": "shelf_r",
+      "primitive": { "kind": "box", "size": [570, 440, 18] },
+      "notes": "右区搁板 570×440×18，距底约 35 cm"
+    },
+    {
+      "id": "drawer_bot",
+      "primitive": { "kind": "box", "size": [560, 420, 290] },
+      "notes": "左区下抽屉 560×420×290"
+    },
+    {
+      "id": "drawer_top",
+      "primitive": { "kind": "box", "size": [560, 420, 290] },
+      "notes": "左区上抽屉，叠在 drawer_bot 顶面"
+    },
+    {
+      "id": "door_l",
+      "primitive": { "kind": "box", "size": [607, 20, 1760] },
+      "notes": "左门 607×20×1760（全高）"
+    },
+    {
+      "id": "door_r",
+      "primitive": { "kind": "box", "size": [603, 20, 1760] },
+      "notes": "右门 603×20×1760"
+    }
+  ],
+  "mates": [
+    {
+      "_comment": "底板 → 左侧板：底板左边顶面 rg:s:-1:0:1 (z=+Z) ↔ 左侧板底面内法线 rg:si:0:0:-1 (z=+Z) → 纯平移，侧板正立",
+      "partA": "bottom_panel", "jointA": { "id": "rg:s:-1:0:1" },
+      "partB": "left_panel",   "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "_comment": "底板 → 右侧板",
+      "partA": "bottom_panel", "jointA": { "id": "rg:s:1:0:1" },
+      "partB": "right_panel",  "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "_comment": "底板 → 背板：底板后边顶面",
+      "partA": "bottom_panel", "jointA": { "id": "rg:s:0:-1:1" },
+      "partB": "back_panel",   "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "_comment": "底板 → 中隔板：底板顶面中心（x=0）→ 中隔板底面内法线。mid_panel 居中后可作 top_panel 的唯一居中父节点",
+      "partA": "bottom_panel", "jointA": { "id": "rg:s:0:0:1" },
+      "partB": "mid_panel",    "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "_comment": "中隔板 → 顶板（唯一父节点，修复多父节点错误）：中隔板顶面居中 → 顶板底面内法线。mid_panel 在 x=0，top_panel 因此正好居中于整体宽度",
+      "partA": "mid_panel", "jointA": { "id": "rg:s:0:0:1" },
+      "partB": "top_panel", "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "_comment": "左侧板 → 左区挂衣杆：rg:s:1:0:7/8（右面外法线 z=+X，高度 7/8）↔ rod_l.rg:si:0:0:-1（底面内法线 z=+Z）。+Z ≠ +X → connect_to 旋转 90°，杆轴变为水平 +X 方向，杆在左区水平延伸",
+      "partA": "left_panel", "jointA": { "id": "rg:s:1:0:7/8" },
+      "partB": "rod_l",      "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "_comment": "右侧板 → 右区挂衣杆：rg:s:-1:0:7/8（左面外法线 z=-X）↔ rod_r.rg:si:0:0:-1（底内法线 z=+Z）。旋转后杆轴为 -X，杆在右区水平延伸",
+      "partA": "right_panel", "jointA": { "id": "rg:s:-1:0:7/8" },
+      "partB": "rod_r",       "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "_comment": "右侧板 → 右区搁板：rg:s:-1:0:-5/8（左面外法线 z=-X，高度 -5/8 ≈ 35 cm from floor）↔ shelf_r.rg:si:1:0:-1（右面内法线 z=-X）→ 同帧纯平移，搁板水平置于 35 cm 高处",
+      "partA": "right_panel", "jointA": { "id": "rg:s:-1:0:-5/8" },
+      "partB": "shelf_r",     "jointB": { "id": "rg:si:1:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "_comment": "底板 → 下抽屉：底板底面内法线偏左（x=-1/2）→ z=+Z，抽屉底面内法线 z=+Z，同帧，抽屉落地于左区",
+      "partA": "bottom_panel", "jointA": { "id": "rg:si:-1/2:0:-1" },
+      "partB": "drawer_bot",   "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "_comment": "下抽屉 → 上抽屉：下抽屉顶面 rg:s:0:0:1（z=+Z）↔ 上抽屉底面内法线 rg:si:0:0:-1（z=+Z）→ 同帧纯平移，正立叠放",
+      "partA": "drawer_bot", "jointA": { "id": "rg:s:0:0:1" },
+      "partB": "drawer_top", "jointB": { "id": "rg:si:0:0:-1" },
+      "kind": "connect_to"
+    },
+    {
+      "_comment": "左侧板 → 左门：左侧板前面 rg:s:0:1:0（z=+Y）↔ 左门背面内法线 rg:si:0:-1:0（z=+Y）→ 同帧，门贴附前面板",
+      "partA": "left_panel", "jointA": { "id": "rg:s:0:1:0" },
+      "partB": "door_l",     "jointB": { "id": "rg:si:0:-1:0" },
+      "kind": "connect_to"
+    },
+    {
+      "_comment": "右侧板 → 右门",
+      "partA": "right_panel", "jointA": { "id": "rg:s:0:1:0" },
+      "partB": "door_r",      "jointB": { "id": "rg:si:0:-1:0" },
+      "kind": "connect_to"
+    }
+  ]
+}
