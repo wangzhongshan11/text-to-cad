@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "units": "mm",
+    "angleUnit": "deg",
+    "title": "4-DOF serial robot arm from preview schematic"
+  },
+  "parts": [
+    { "id": "base_disk", "primitive": { "kind": "cylinder", "radius": 95, "height": 42 } },
+    { "id": "turntable", "primitive": { "kind": "cylinder", "radius": 76, "height": 34 } },
+    { "id": "link1_column", "primitive": { "kind": "box", "size": [52, 52, 208] } },
+    { "id": "link2_forearm", "primitive": { "kind": "box", "size": [248, 48, 48] } },
+    { "id": "link3_upperarm", "primitive": { "kind": "box", "size": [198, 44, 44] } },
+    { "id": "wrist_block", "primitive": { "kind": "box", "size": [46, 44, 44] } },
+    { "id": "gripper_frame", "primitive": { "kind": "box", "size": [32, 72, 30] } },
+    { "id": "jaw_left", "primitive": { "kind": "box", "size": [14, 22, 52] } },
+    { "id": "jaw_right", "primitive": { "kind": "box", "size": [14, 22, 52] } }
+  ],
+  "mates": [
+    {
+      "partA": "base_disk",
+      "jointA": { "id": "rv:s:0:0:1", "frame": "+X:+Y:+Z" },
+      "partB": "turntable",
+      "jointB": { "id": "rg:si:0:0:-1", "frame": "+X:+Y:+Z" },
+      "kind": "connect_to",
+      "angle": 0
+    },
+    {
+      "partA": "turntable",
+      "jointA": { "id": "rg:s:0:0:1", "frame": "+X:+Y:+Z" },
+      "partB": "link1_column",
+      "jointB": { "id": "rg:si:0:0:-1", "frame": "+X:+Y:+Z" },
+      "kind": "connect_to"
+    },
+    {
+      "partA": "link1_column",
+      "jointA": { "id": "rv:c:0:-1:1", "frame": "+Z:+X:+Y" },
+      "partB": "link2_forearm",
+      "jointB": { "id": "rg:c:-1:0:0", "frame": "+Z:+X:+Y" },
+      "kind": "connect_to",
+      "angle": 20
+    },
+    {
+      "partA": "link2_forearm",
+      "jointA": { "id": "rv:c:1:0:1", "frame": "+Z:+X:+Y" },
+      "partB": "link3_upperarm",
+      "jointB": { "id": "rg:c:-1:0:0", "frame": "+Z:+X:+Y" },
+      "kind": "connect_to",
+      "angle": 335
+    },
+    {
+      "partA": "link3_upperarm",
+      "jointA": { "id": "rv:c:1:0:0", "frame": "+Y:+Z:+X" },
+      "partB": "wrist_block",
+      "jointB": { "id": "rg:c:-1:0:0", "frame": "+Y:+Z:+X" },
+      "kind": "connect_to",
+      "angle": 0
+    },
+    {
+      "partA": "wrist_block",
+      "jointA": { "id": "rg:s:1:0:0", "frame": "+Y:+Z:+X" },
+      "partB": "gripper_frame",
+      "jointB": { "id": "rg:si:-1:0:0", "frame": "+Y:+Z:+X" },
+      "kind": "connect_to"
+    },
+    {
+      "partA": "gripper_frame",
+      "jointA": { "id": "rg:s:0:1:0", "frame": "+Z:+X:+Y" },
+      "partB": "jaw_left",
+      "jointB": { "id": "rg:si:0:-1:0", "frame": "+Z:+X:+Y" },
+      "kind": "connect_to"
+    },
+    {
+      "partA": "gripper_frame",
+      "jointA": { "id": "rg:s:0:-1:0", "frame": "+Z:-X:-Y" },
+      "partB": "jaw_right",
+      "jointB": { "id": "rg:si:0:1:0", "frame": "+Z:-X:-Y" },
+      "kind": "connect_to"
+    }
+  ]
+}

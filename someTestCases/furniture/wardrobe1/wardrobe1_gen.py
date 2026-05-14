@@ -20,9 +20,9 @@ def gen_step():
     door_r = Box(603, 20, 1760)
 
     # --- joints ---
-    RigidJoint('rg_s__1_0_1', bottom_panel, Plane(origin=(-605, 0, 9), x_dir=(0, 1, 0), z_dir=(-1, 0, 0)).location)
-    RigidJoint('rg_s_1_0_1', bottom_panel, Plane(origin=(605, 0, 9), x_dir=(0, 1, 0), z_dir=(1, 0, 0)).location)
-    RigidJoint('rg_s_0__1_1', bottom_panel, Plane(origin=(0, -230, 9), x_dir=(0, 0, 1), z_dir=(0, -1, 0)).location)
+    RigidJoint('rg_c__1_0_1', bottom_panel, Location((-605, 0, 9)))
+    RigidJoint('rg_c_1_0_1', bottom_panel, Location((605, 0, 9)))
+    RigidJoint('rg_c_0__1_1', bottom_panel, Location((0, -230, 9)))
     RigidJoint('rg_s_0_0_1', bottom_panel, Location((0, 0, 9)))
     RigidJoint('rg_si__1_2_0__1', bottom_panel, Location((-302.5, 0, -9)))
     RigidJoint('rg_si_0_0__1', left_panel, Location((0, 0, -862)))
@@ -46,9 +46,9 @@ def gen_step():
     RigidJoint('rg_si_0__1_0_1', door_r, Plane(origin=(0, -10, 0), x_dir=(0, 0, 1), z_dir=(0, 1, 0)).location)
 
     # --- mates ---
-    bottom_panel.joints['rg_s__1_0_1'].connect_to(left_panel.joints['rg_si_0_0__1'])
-    bottom_panel.joints['rg_s_1_0_1'].connect_to(right_panel.joints['rg_si_0_0__1_1'])
-    bottom_panel.joints['rg_s_0__1_1'].connect_to(back_panel.joints['rg_si_0_0__1_2'])
+    bottom_panel.joints['rg_c__1_0_1'].connect_to(left_panel.joints['rg_si_0_0__1'])
+    bottom_panel.joints['rg_c_1_0_1'].connect_to(right_panel.joints['rg_si_0_0__1_1'])
+    bottom_panel.joints['rg_c_0__1_1'].connect_to(back_panel.joints['rg_si_0_0__1_2'])
     bottom_panel.joints['rg_s_0_0_1'].connect_to(mid_panel.joints['rg_si_0_0__1_3'])
     bottom_panel.joints['rg_si__1_2_0__1'].connect_to(drawer_bot.joints['rg_si_0_0__1_4'])
     left_panel.joints['rg_s_1_0_7_8'].connect_to(rod_l.joints['rg_si_0_0__1_5'])

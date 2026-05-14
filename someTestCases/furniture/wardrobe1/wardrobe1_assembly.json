@@ -4,7 +4,7 @@
     "units": "mm",
     "angleUnit": "deg",
     "title": "双门衣柜 wardrobe1（121×46×176 cm）",
-    "notes": "依据 preview.png。总尺寸 1210×460×1760 mm，板厚 18 mm。装配树：bottom_panel 为根；mid_panel（中隔板）居中，同时定位 top_panel（唯一父节点）和 shelf_r；左区挂衣杆+双抽屉，右区挂衣杆+搁板；双门各从对应侧板前面悬挂。"
+    "notes": "依据 preview.png。总尺寸 1210×460×1760 mm，板厚 18 mm，侧板/中隔板高 1724 mm（= 1760-2×18）。装配树根节点 bottom_panel；mid_panel 居 x=0 中心，既做中隔板又作 top_panel 的唯一父节点；左右侧板外缘与底板外缘对齐（近似，误差 9 mm，因归一化坐标无法精确表达 -596/605）。所有 joint 均带 frame 字段；rg:s:-1:0:1 / rg:s:1:0:1 / rg:s:0:-1:1 三处面轴歧义（|x|=|z|=1 或 |y|=|z|=1）均已替换为 custom joint 以明确 frame=+X:+Y:+Z（顶面，z 朝上）。"
   },
   "parts": [
     {
@@ -15,12 +15,12 @@
     {
       "id": "left_panel",
       "primitive": { "kind": "box", "size": [18, 460, 1724] },
-      "notes": "左侧板 18×460×1724（= 1760-18-18，夹在底板与顶板之间）"
+      "notes": "左侧板 18×460×1724"
     },
     {
       "id": "right_panel",
       "primitive": { "kind": "box", "size": [18, 460, 1724] },
-      "notes": "右侧板，同上"
+      "notes": "右侧板"
     },
     {
       "id": "back_panel",
@@ -30,7 +30,7 @@
     {
       "id": "mid_panel",
       "primitive": { "kind": "box", "size": [18, 460, 1724] },
-      "notes": "中隔板，居于 x=0，同时是 top_panel 的唯一父节点"
+      "notes": "中隔板，x=0 居中，同时作 top_panel 的唯一父节点"
     },
     {
       "id": "top_panel",
@@ -40,12 +40,12 @@
     {
       "id": "rod_l",
       "primitive": { "kind": "cylinder", "radius": 12, "height": 570 },
-      "notes": "左区挂衣杆 r=12 h=570（57 cm），通过侧板外法线关节旋转为水平"
+      "notes": "左区挂衣杆 r=12 h=570；通过 left_panel 右面外法线（z=+X）与杆底面内法线（z=+Z）帧差异使 connect_to 旋转 90°，杆由竖直变水平朝 +X"
     },
     {
       "id": "rod_r",
       "primitive": { "kind": "cylinder", "radius": 12, "height": 570 },
-      "notes": "右区挂衣杆"
+      "notes": "右区挂衣杆；通过 right_panel 左面外法线（z=-X）旋转 90°，杆朝 -X"
     },
     {
       "id": "shelf_r",
@@ -75,75 +75,99 @@
   ],
   "mates": [
     {
-      "_comment": "底板 → 左侧板：底板左边顶面 rg:s:-1:0:1 (z=+Z) ↔ 左侧板底面内法线 rg:si:0:0:-1 (z=+Z) → 纯平移，侧板正立",
-      "partA": "bottom_panel", "jointA": { "id": "rg:s:-1:0:1" },
-      "partB": "left_panel",   "jointB": { "id": "rg:si:0:0:-1" },
+      "_why": "底板左棱顶面 → 左侧板底面 si。rg:s:-1:0:1 面轴歧义（|x|=|z|=1 时 x 优先→左面 z=-X 而非顶面 z=+Z），改用 custom joint 明确 frame=+X:+Y:+Z（顶面，z 朝上）→ 纯平移，侧板正立。",
+      "partA": "bottom_panel",
+      "jointA": { "id": "rg:c:-1:0:1", "frame": "+X:+Y:+Z" },
+      "partB": "left_panel",
+      "jointB": { "id": "rg:si:0:0:-1", "frame": "+X:+Y:+Z" },
       "kind": "connect_to"
     },
     {
-      "_comment": "底板 → 右侧板",
-      "partA": "bottom_panel", "jointA": { "id": "rg:s:1:0:1" },
-      "partB": "right_panel",  "jointB": { "id": "rg:si:0:0:-1" },
+      "_why": "同上，右侧。rg:s:1:0:1 同样面轴歧义（右面 z=+X），改为 custom joint。",
+      "partA": "bottom_panel",
+      "jointA": { "id": "rg:c:1:0:1", "frame": "+X:+Y:+Z" },
+      "partB": "right_panel",
+      "jointB": { "id": "rg:si:0:0:-1", "frame": "+X:+Y:+Z" },
       "kind": "connect_to"
     },
     {
-      "_comment": "底板 → 背板：底板后边顶面",
-      "partA": "bottom_panel", "jointA": { "id": "rg:s:0:-1:1" },
-      "partB": "back_panel",   "jointB": { "id": "rg:si:0:0:-1" },
+      "_why": "底板后棱顶面 → 背板底面 si。rg:s:0:-1:1 面轴歧义（|y|=|z|=1，y 优先→后面 z=-Y），改为 custom joint frame=+X:+Y:+Z（顶面 z 朝上）→ 背板正立。",
+      "partA": "bottom_panel",
+      "jointA": { "id": "rg:c:0:-1:1", "frame": "+X:+Y:+Z" },
+      "partB": "back_panel",
+      "jointB": { "id": "rg:si:0:0:-1", "frame": "+X:+Y:+Z" },
       "kind": "connect_to"
     },
     {
-      "_comment": "底板 → 中隔板：底板顶面中心（x=0）→ 中隔板底面内法线。mid_panel 居中后可作 top_panel 的唯一居中父节点",
-      "partA": "bottom_panel", "jointA": { "id": "rg:s:0:0:1" },
-      "partB": "mid_panel",    "jointB": { "id": "rg:si:0:0:-1" },
+      "_why": "底板顶面中心（x=0）→ 中隔板底面 si。rg:s:0:0:1：z_n=1 唯一最大值，顶面无歧义，frame=+X:+Y:+Z。",
+      "partA": "bottom_panel",
+      "jointA": { "id": "rg:s:0:0:1", "frame": "+X:+Y:+Z" },
+      "partB": "mid_panel",
+      "jointB": { "id": "rg:si:0:0:-1", "frame": "+X:+Y:+Z" },
       "kind": "connect_to"
     },
     {
-      "_comment": "中隔板 → 顶板（唯一父节点，修复多父节点错误）：中隔板顶面居中 → 顶板底面内法线。mid_panel 在 x=0，top_panel 因此正好居中于整体宽度",
-      "partA": "mid_panel", "jointA": { "id": "rg:s:0:0:1" },
-      "partB": "top_panel", "jointB": { "id": "rg:si:0:0:-1" },
+      "_why": "中隔板顶面 → 顶板底面 si（唯一父节点修复）。mid_panel 在 x=0，top_panel 因此居中。同帧 +X:+Y:+Z，纯平移。",
+      "partA": "mid_panel",
+      "jointA": { "id": "rg:s:0:0:1", "frame": "+X:+Y:+Z" },
+      "partB": "top_panel",
+      "jointB": { "id": "rg:si:0:0:-1", "frame": "+X:+Y:+Z" },
       "kind": "connect_to"
     },
     {
-      "_comment": "左侧板 → 左区挂衣杆：rg:s:1:0:7/8（右面外法线 z=+X，高度 7/8）↔ rod_l.rg:si:0:0:-1（底面内法线 z=+Z）。+Z ≠ +X → connect_to 旋转 90°，杆轴变为水平 +X 方向，杆在左区水平延伸",
-      "partA": "left_panel", "jointA": { "id": "rg:s:1:0:7/8" },
-      "partB": "rod_l",      "jointB": { "id": "rg:si:0:0:-1" },
+      "_why": "左侧板右面外法线 → 左区挂衣杆底面 si。A.frame=+Y:+Z:+X（右面外，z=+X），B.frame=+X:+Y:+Z（底 si，z=+Z）。z 方向差 90°，connect_to 旋转杆，使杆轴由 +Z 转为 +X（水平向右），杆沿左区延伸。",
+      "partA": "left_panel",
+      "jointA": { "id": "rg:s:1:0:7/8", "frame": "+Y:+Z:+X" },
+      "partB": "rod_l",
+      "jointB": { "id": "rg:si:0:0:-1", "frame": "+X:+Y:+Z" },
       "kind": "connect_to"
     },
     {
-      "_comment": "右侧板 → 右区挂衣杆：rg:s:-1:0:7/8（左面外法线 z=-X）↔ rod_r.rg:si:0:0:-1（底内法线 z=+Z）。旋转后杆轴为 -X，杆在右区水平延伸",
-      "partA": "right_panel", "jointA": { "id": "rg:s:-1:0:7/8" },
-      "partB": "rod_r",       "jointB": { "id": "rg:si:0:0:-1" },
+      "_why": "右侧板左面外法线 → 右区挂衣杆底面 si。A.frame=+Y:-Z:-X（左面外，z=-X），B.frame=+X:+Y:+Z（底 si，z=+Z）。z 方向差 90°，杆轴转为 -X（水平向左），杆沿右区延伸。",
+      "partA": "right_panel",
+      "jointA": { "id": "rg:s:-1:0:7/8", "frame": "+Y:-Z:-X" },
+      "partB": "rod_r",
+      "jointB": { "id": "rg:si:0:0:-1", "frame": "+X:+Y:+Z" },
       "kind": "connect_to"
     },
     {
-      "_comment": "右侧板 → 右区搁板：rg:s:-1:0:-5/8（左面外法线 z=-X，高度 -5/8 ≈ 35 cm from floor）↔ shelf_r.rg:si:1:0:-1（右面内法线 z=-X）→ 同帧纯平移，搁板水平置于 35 cm 高处",
-      "partA": "right_panel", "jointA": { "id": "rg:s:-1:0:-5/8" },
-      "partB": "shelf_r",     "jointB": { "id": "rg:si:1:0:-1" },
+      "_why": "右侧板左面外法线（高度 -5/8 ≈ 35 cm）→ 搁板右面 si。A.frame=B.frame=+Y:-Z:-X，同帧纯平移，搁板水平落在右区。",
+      "partA": "right_panel",
+      "jointA": { "id": "rg:s:-1:0:-5/8", "frame": "+Y:-Z:-X" },
+      "partB": "shelf_r",
+      "jointB": { "id": "rg:si:1:0:-1", "frame": "+Y:-Z:-X" },
       "kind": "connect_to"
     },
     {
-      "_comment": "底板 → 下抽屉：底板底面内法线偏左（x=-1/2）→ z=+Z，抽屉底面内法线 z=+Z，同帧，抽屉落地于左区",
-      "partA": "bottom_panel", "jointA": { "id": "rg:si:-1/2:0:-1" },
-      "partB": "drawer_bot",   "jointB": { "id": "rg:si:0:0:-1" },
+      "_why": "底板底面 si 偏左（x=-1/2）→ 下抽屉底面 si。abs(-1/2)=0.5 < abs(-1)=1，z 轴为面轴 → 底面 si，frame=+X:+Y:+Z。同帧纯平移，抽屉落地于左区。",
+      "partA": "bottom_panel",
+      "jointA": { "id": "rg:si:-1/2:0:-1", "frame": "+X:+Y:+Z" },
+      "partB": "drawer_bot",
+      "jointB": { "id": "rg:si:0:0:-1", "frame": "+X:+Y:+Z" },
       "kind": "connect_to"
     },
     {
-      "_comment": "下抽屉 → 上抽屉：下抽屉顶面 rg:s:0:0:1（z=+Z）↔ 上抽屉底面内法线 rg:si:0:0:-1（z=+Z）→ 同帧纯平移，正立叠放",
-      "partA": "drawer_bot", "jointA": { "id": "rg:s:0:0:1" },
-      "partB": "drawer_top", "jointB": { "id": "rg:si:0:0:-1" },
+      "_why": "下抽屉顶面 → 上抽屉底面 si，同帧 +X:+Y:+Z，纯平移叠放。",
+      "partA": "drawer_bot",
+      "jointA": { "id": "rg:s:0:0:1", "frame": "+X:+Y:+Z" },
+      "partB": "drawer_top",
+      "jointB": { "id": "rg:si:0:0:-1", "frame": "+X:+Y:+Z" },
       "kind": "connect_to"
     },
     {
-      "_comment": "左侧板 → 左门：左侧板前面 rg:s:0:1:0（z=+Y）↔ 左门背面内法线 rg:si:0:-1:0（z=+Y）→ 同帧，门贴附前面板",
-      "partA": "left_panel", "jointA": { "id": "rg:s:0:1:0" },
-      "partB": "door_l",     "jointB": { "id": "rg:si:0:-1:0" },
+      "_why": "左侧板前面外法线 → 左门背面 si。A.frame=B.frame=+Z:+X:+Y（前面 z=+Y），同帧纯平移，门贴附前面。",
+      "partA": "left_panel",
+      "jointA": { "id": "rg:s:0:1:0", "frame": "+Z:+X:+Y" },
+      "partB": "door_l",
+      "jointB": { "id": "rg:si:0:-1:0", "frame": "+Z:+X:+Y" },
       "kind": "connect_to"
     },
     {
-      "_comment": "右侧板 → 右门",
-      "partA": "right_panel", "jointA": { "id": "rg:s:0:1:0" },
-      "partB": "door_r",      "jointB": { "id": "rg:si:0:-1:0" },
+      "_why": "右侧板前面外法线 → 右门背面 si，同上。",
+      "partA": "right_panel",
+      "jointA": { "id": "rg:s:0:1:0", "frame": "+Z:+X:+Y" },
+      "partB": "door_r",
+      "jointB": { "id": "rg:si:0:-1:0", "frame": "+Z:+X:+Y" },
       "kind": "connect_to"
     }
   ]
