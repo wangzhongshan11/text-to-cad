@@ -39,6 +39,6 @@ test("buildExplorerServerInfo returns dev-server identity without catalog data",
 
 test("normalizeExplorerPort falls back for invalid values", () => {
   assert.equal(normalizeExplorerPort("4180"), 4180);
-  assert.equal(normalizeExplorerPort("invalid", 4178), 4178);
-  assert.equal(normalizeExplorerPort("70000", 4178), 4178);
+  assert.equal(normalizeExplorerPort("invalid", 5180), 5180);
+  assert.equal(normalizeExplorerPort("70000", 5180), 5180);
 });

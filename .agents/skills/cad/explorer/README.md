@@ -58,7 +58,7 @@ Do not hand-edit package-local generated CAD assets during normal CAD or CAD Exp
 ## Runtime
 
 - `npm run dev` starts `vite dev`, scans `EXPLORER_ROOT_DIR` relative to the inferred workspace root, and updates the workspace when matching CAD files or per-STEP CAD Explorer assets are added, changed, or removed. The dev server uses Vite `strictPort`; if the configured port is already occupied, startup reports the conflict instead of opening another port.
-- `npm run dev:ensure -- --file path/to/model.step` probes local CAD Explorer dev servers through `GET /__cad/server`, reuses a server when its active scan root matches the requested root, or starts a new Vite dev server on the first free port from `EXPLORER_PORT` through `EXPLORER_PORT_END` (`4178-4198` by default). It prints the Explorer URL to use for that file.
+- `npm run dev:ensure -- --file path/to/model.step` probes local CAD Explorer dev servers through `GET /__cad/server`, reuses a server when its active scan root matches the requested root, or starts a new Vite dev server on the first free port from `EXPLORER_PORT` through `EXPLORER_PORT_END` (`5180-5200` by default). It prints the Explorer URL to use for that file.
 - `GET /__cad/server` is a dev-only identity endpoint. It returns process/root metadata and does not scan CAD files.
 - `EXPLORER_DEFAULT_FILE` can be set to a scan-root-relative file path, including extension, to open that entry by default when the URL has no `?file=`.
 - `EXPLORER_GITHUB_URL` sets the top-bar GitHub button target and defaults to `https://github.com/earthtojake/text-to-cad`.
@@ -104,7 +104,7 @@ npm --prefix explorer run dev
 
 Then open:
 
-- `http://localhost:4178`
+- `http://localhost:5180`
 
 For root-aware agent startup, run:
 

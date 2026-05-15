@@ -25,7 +25,7 @@ Start Explorer for agent workflows:
 npm --prefix explorer run dev:ensure -- --file path/to/model.step
 ```
 
-This command shape is relative to the CAD skill directory. `dev:ensure` probes local CAD Explorer dev servers, reuses one when its scan root matches the requested workspace/root, or starts a new Vite dev server on the first free port in the configured range. Use the URL printed by this command for final Explorer links; do not assume port `4178`.
+This command shape is relative to the CAD skill directory. `dev:ensure` probes local CAD Explorer dev servers, reuses one when its scan root matches the requested workspace/root, or starts a new Vite dev server on the first free port in the configured range. Use the URL printed by this command for final Explorer links; do not assume port `5180`.
 
 For manual foreground Vite development, use:
 
@@ -36,8 +36,8 @@ npm --prefix explorer run dev
 Important environment variables:
 
 ```text
-EXPLORER_PORT              default 4178
-EXPLORER_PORT_END          dev:ensure default 4198
+EXPLORER_PORT              default 5180
+EXPLORER_PORT_END          dev:ensure default 5200
 EXPLORER_ROOT_DIR          scan subdirectory; empty means the inferred workspace root
 EXPLORER_DEFAULT_FILE      scan-root-relative file opened when no ?file= is supplied
 EXPLORER_GITHUB_URL
@@ -60,7 +60,7 @@ npm --prefix explorer run dev:ensure -- --file models/mounting_plate.step
 If an inspected selector matters, include its textual ref next to the Explorer link:
 
 ```text
-Explorer: http://127.0.0.1:4178/?file=models/mounting_plate.step
+Explorer: http://127.0.0.1:5180/?file=models/mounting_plate.step
 Key ref: @cad[models/mounting_plate.step#<selector>]
 ```
 

@@ -18,7 +18,7 @@ import {
   normalizeExplorerPort,
 } from "../lib/explorerServerInfo.mjs";
 
-export const DEFAULT_PORT_END = 4198;
+export const DEFAULT_PORT_END = 5200;
 export const DEFAULT_PROBE_TIMEOUT_MS = 200;
 export const DEFAULT_START_TIMEOUT_MS = 30_000;
 export const DEFAULT_READY_INTERVAL_MS = 100;
@@ -387,8 +387,8 @@ Options:
   --workspace-root <path>  Workspace root to scan. Defaults to INIT_CWD.
   --root-dir <path>        Scan subdirectory inside the workspace root.
   --file <path>            File to open; accepts absolute, workspace-relative, or scan-root-relative paths.
-  --port <number>          First port to probe. Defaults to 4178 or EXPLORER_PORT.
-  --port-end <number>      Last port to probe. Defaults to 4198.
+  --port <number>          First port to probe. Defaults to 5180 or EXPLORER_PORT.
+  --port-end <number>      Last port to probe. Defaults to 5200.
   --json                   Print structured JSON instead of just the Explorer URL.
 `;
 }

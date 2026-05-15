@@ -143,10 +143,10 @@ test("selectExplorerServer reuses matching explorer roots", async () => {
   const rootPath = path.resolve("/tmp/work-a");
   const selection = await selectExplorerServer({
     rootPath,
-    port: 4178,
-    portEnd: 4180,
-    probeServer: async (port) => port === 4178
-      ? { app: "cad-explorer", rootPath, port, url: "http://127.0.0.1:4178" }
+    port: 5180,
+    portEnd: 5182,
+    probeServer: async (port) => port === 5180
+      ? { app: "cad-explorer", rootPath, port, url: "http://127.0.0.1:5180" }
       : null,
     canBind: async () => {
       throw new Error("canBind should not be called for a matching Explorer");
@@ -154,22 +154,22 @@ test("selectExplorerServer reuses matching explorer roots", async () => {
   });
 
   assert.equal(selection.action, "reuse");
-  assert.equal(selection.port, 4178);
+  assert.equal(selection.port, 5180);
 });
 
 test("selectExplorerServer skips different roots and starts on the first free port", async () => {
   const selection = await selectExplorerServer({
     rootPath: path.resolve("/tmp/work-b"),
-    port: 4178,
-    portEnd: 4180,
-    probeServer: async (port) => port === 4178
-      ? { app: "cad-explorer", rootPath: path.resolve("/tmp/work-a"), port, url: "http://127.0.0.1:4178" }
+    port: 5180,
+    portEnd: 5182,
+    probeServer: async (port) => port === 5180
+      ? { app: "cad-explorer", rootPath: path.resolve("/tmp/work-a"), port, url: "http://127.0.0.1:5180" }
       : null,
-    canBind: async (port) => port === 4179,
+    canBind: async (port) => port === 5181,
   });
 
   assert.equal(selection.action, "start");
-  assert.equal(selection.port, 4179);
+  assert.equal(selection.port, 5181);
 });
 
 test("buildViteSpawnOptions starts native Vite with explicit Explorer environment", () => {
@@ -195,20 +195,20 @@ test("formatEnsureDevResult can print JSON payloads", () => {
       serverInfo: {
         app: "cad-explorer",
         rootPath: "/tmp/work",
-        port: 4178,
-        url: "http://127.0.0.1:4178",
+        port: 5180,
+        url: "http://127.0.0.1:5180",
       },
       fileParam: "part.step",
       json: true,
     })),
     {
       action: "reused",
-      url: "http://127.0.0.1:4178/?file=part.step",
+      url: "http://127.0.0.1:5180/?file=part.step",
       server: {
         app: "cad-explorer",
         rootPath: "/tmp/work",
-        port: 4178,
-        url: "http://127.0.0.1:4178",
+        port: 5180,
+        url: "http://127.0.0.1:5180",
       },
     }
   );

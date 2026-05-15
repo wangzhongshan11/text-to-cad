@@ -54,7 +54,7 @@ Files:
 - DXF: path/to/output.dxf
 
 CAD Explorer:
-- http://127.0.0.1:4178/?file=path/to/source.step
+- http://127.0.0.1:5180/?file=path/to/source.step
 
 Validation:
 - STEP geometry: checked with facts/planes/positioning

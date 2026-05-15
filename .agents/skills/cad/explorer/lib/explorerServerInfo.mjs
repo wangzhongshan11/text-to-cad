@@ -9,7 +9,7 @@ import {
 export const EXPLORER_SERVER_INFO_SCHEMA_VERSION = 1;
 export const EXPLORER_SERVER_APP_ID = "cad-explorer";
 export const DEFAULT_EXPLORER_HOST = "127.0.0.1";
-export const DEFAULT_EXPLORER_PORT = 4178;
+export const DEFAULT_EXPLORER_PORT = 5180;
 
 export function normalizeExplorerPort(value, fallback = DEFAULT_EXPLORER_PORT) {
   const parsed = Number.parseInt(String(value ?? ""), 10);

@@ -62,7 +62,7 @@ Files:
 - STL: meshes/bracket.stl
 
 CAD Explorer:
-- http://127.0.0.1:4178/?file=models/bracket.step
+- http://127.0.0.1:5180/?file=models/bracket.step
 
 Validation:
 - STEP geometry validated; STL/3MF generated as requested sidecars.

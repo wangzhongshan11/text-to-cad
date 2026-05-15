@@ -198,7 +198,7 @@ Run the local CAD Explorer from the project directory you want to scan:
 npm --prefix .agents/skills/cad/explorer run dev
 ```
 
-Then open [http://localhost:4178](http://localhost:4178).
+Then open [http://localhost:5180](http://localhost:5180), or set `EXPLORER_PORT` / use `dev:ensure` (prints the actual URL).
 
 For root-aware agent workflows across multiple projects, ask CAD Explorer to
 reuse a matching server or start one on a free port:
