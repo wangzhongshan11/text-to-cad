@@ -36,16 +36,6 @@ class GeneratorMetadata:
     mesh_angular_tolerance: float | None
 
 
-STEP_ENVELOPE_FIELDS = {
-    "shape",
-    "instances",
-    "children",
-    "step_output",
-    "stl",
-    "3mf",
-    "mesh_tolerance",
-    "mesh_angular_tolerance",
-}
 DXF_ENVELOPE_FIELDS = {"document", "dxf_output"}
 URDF_ENVELOPE_FIELDS = {"xml", "urdf_output", "explorer_metadata"}
 
@@ -108,21 +98,37 @@ def parse_generator_metadata(script_path: Path) -> GeneratorMetadata | None:
     has_gen_dxf = False
     has_gen_urdf = False
     generator_names: list[str] = []
+    step_output: str | None = None
+    stl: str | None = None
+    three_mf: str | None = None
     dxf_output: str | None = None
     urdf_output: str | None = None
 
     for node in tree.body:
-        target: ast.expr | None = None
-        value: ast.AST | None = None
         if isinstance(node, ast.Assign) and len(node.targets) == 1:
             target = node.targets[0]
             value = node.value
-        elif isinstance(node, ast.AnnAssign):
+            if isinstance(target, ast.Name) and isinstance(value, ast.Constant):
+                if target.id == "DISPLAY_NAME" and isinstance(value.value, str):
+                    display_name = value.value.strip()
+                elif target.id == "STEP_OUTPUT" and isinstance(value.value, str):
+                    step_output = _normalize_step_output_literal(
+                        script_path=script_path,
+                        raw_value=value.value,
+                    )
+            continue
+        if isinstance(node, ast.AnnAssign):
             target = node.target
             value = node.value
-        if isinstance(target, ast.Name) and value is not None:
-            if target.id == "DISPLAY_NAME" and isinstance(value, ast.Constant) and isinstance(value.value, str):
-                display_name = value.value.strip()
+            if isinstance(target, ast.Name) and isinstance(value, ast.Constant):
+                if target.id == "DISPLAY_NAME" and isinstance(value.value, str):
+                    display_name = value.value.strip()
+                elif target.id == "STEP_OUTPUT" and isinstance(value.value, str):
+                    step_output = _normalize_step_output_literal(
+                        script_path=script_path,
+                        raw_value=value.value,
+                    )
+            continue
 
         if not isinstance(node, ast.FunctionDef) or node.name not in {"gen_step", "gen_dxf", "gen_urdf"}:
             continue
@@ -177,9 +183,9 @@ def parse_generator_metadata(script_path: Path) -> GeneratorMetadata | None:
         has_gen_step=has_gen_step,
         has_gen_dxf=has_gen_dxf,
         has_gen_urdf=has_gen_urdf,
-        step_output=None,
-        stl=None,
-        three_mf=None,
+        step_output=step_output,
+        stl=stl,
+        three_mf=three_mf,
         dxf_output=dxf_output,
         urdf_output=urdf_output,
         mesh_tolerance=None,
@@ -193,32 +199,32 @@ def _parse_step_return_metadata(
     function: ast.FunctionDef,
 ) -> str:
     return_node = _single_return_value(script_path=script_path, function=function)
-    if not isinstance(return_node, ast.Dict):
-        return _parse_bare_step_return(script_path=script_path, function=function, return_node=return_node)
+    if isinstance(return_node, ast.Call) and _is_constraint_assembly_call(return_node):
+        return "part"
+    return _parse_bare_step_return(script_path=script_path, function=function, return_node=return_node)
 
-    envelope = _parse_literal_return_envelope(script_path=script_path, function=function)
-    _reject_unsupported_fields(
-        script_path=script_path,
-        function_name=function.name,
-        envelope=envelope,
-        allowed_fields=STEP_ENVELOPE_FIELDS,
-    )
-    has_shape = "shape" in envelope
-    has_instances = "instances" in envelope
-    has_children = "children" in envelope
-    has_assembly = has_instances or has_children
-    if has_instances and has_children:
-        raise ValueError(
-            f"{_display_path(script_path)} gen_step() envelope must define only one of "
-            "'instances' or 'children'"
-        )
-    if has_shape == has_assembly:
-        raise ValueError(
-            f"{_display_path(script_path)} gen_step() envelope must define exactly one of "
-            "'shape', 'instances', or 'children'"
-        )
-    kind = "part" if has_shape else "assembly"
-    return kind
+
+def _is_constraint_assembly_call(node: ast.Call) -> bool:
+    func = node.func
+    if isinstance(func, ast.Name):
+        return func.id == "constraint_assembly"
+    if isinstance(func, ast.Attribute):
+        return func.attr == "constraint_assembly"
+    return False
+
+
+def _normalize_step_output_literal(*, script_path: Path, raw_value: str) -> str | None:
+    from pathlib import PurePosixPath
+
+    value = raw_value.strip()
+    if not value:
+        return None
+    pure = PurePosixPath(value)
+    if pure.is_absolute() or any(part in {"", ".", ".."} for part in pure.parts):
+        return None
+    if pure.suffix.lower() != ".step":
+        return None
+    return value
 
 
 def _parse_bare_step_return(
@@ -227,14 +233,13 @@ def _parse_bare_step_return(
     function: ast.FunctionDef,
     return_node: ast.expr,
 ) -> str:
-    if isinstance(return_node, ast.List):
-        return "assembly"
-    if isinstance(return_node, ast.Name) and return_node.id in {"instances", "children"}:
-        return "assembly"
+    if isinstance(return_node, (ast.Dict, ast.List)):
+        raise ValueError(
+            f"{_display_path(script_path)} {function.name}() must return a build123d Shape or Compound"
+        )
     if isinstance(return_node, ast.Constant) and return_node.value is None:
         raise ValueError(
-            f"{_display_path(script_path)} {function.name}() must return a shape, assembly list, "
-            "or legacy envelope dict"
+            f"{_display_path(script_path)} {function.name}() must return a build123d Shape or Compound"
         )
     return "part"
 
@@ -292,7 +297,11 @@ def _parse_literal_return_envelope(
             f"{_display_path(script_path)} {function.name}() must return a generator envelope dict"
         )
     envelope: dict[str, ast.expr] = {}
-    for key_node, value_node in zip(value.keys, value.values, strict=True):
+    if len(value.keys) != len(value.values):
+        raise ValueError(
+            f"{_display_path(script_path)} {function.name}() envelope dict has mismatched keys/values"
+        )
+    for key_node, value_node in zip(value.keys, value.values):
         if not isinstance(key_node, ast.Constant) or not isinstance(key_node.value, str):
             raise ValueError(
                 f"{_display_path(script_path)} {function.name}() envelope keys must be string literals"

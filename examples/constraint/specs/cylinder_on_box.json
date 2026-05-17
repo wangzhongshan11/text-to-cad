@@ -1,0 +1,17 @@
+{
+  "ground": "base",
+  "bodies": {
+    "base": {"primitive": "box", "size": [120, 120, 16]},
+    "pin": {"primitive": "cylinder", "radius": 12, "height": 48}
+  },
+  "initial_guess": {
+    "pin": [20.0, -15.0, 32.0, 0.0, 0.0, 0.0, 1.0]
+  },
+  "constraints": [
+    {"type": "contact", "a": "pin.-z", "b": "base.+z"},
+    {"type": "axis_parallel", "a": "pin.axis", "b": "base.axis_z"},
+    {"type": "point_plane_offset", "point": "pin.center", "plane": "base.+z", "offset": 24.0},
+    {"type": "point_plane_offset", "point": "pin.center", "plane": "base.+z", "in_plane": "x", "value": 20},
+    {"type": "point_plane_offset", "point": "pin.center", "plane": "base.+z", "in_plane": "y", "value": -15}
+  ]
+}

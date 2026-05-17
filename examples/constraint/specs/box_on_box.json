@@ -1,0 +1,13 @@
+{
+  "ground": "base",
+  "bodies": {
+    "base": {"primitive": "box", "size": [200, 150, 20]},
+    "b1": {"primitive": "box", "size": [40, 30, 25]}
+  },
+  "constraints": [
+    {"type": "plane_coincident", "a": "b1.-z", "b": "base.+z", "opposed": true},
+    {"type": "point_plane_offset", "point": "b1.center", "plane": "base.+z", "offset": 12.5},
+    {"type": "point_plane_offset", "point": "b1.center", "plane": "base.+z", "in_plane": "x", "value": 30},
+    {"type": "point_plane_offset", "point": "b1.center", "plane": "base.+z", "in_plane": "y", "value": 40}
+  ]
+}

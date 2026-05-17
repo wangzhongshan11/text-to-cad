@@ -1,0 +1,12 @@
+{
+  "ground": "base",
+  "bodies": {
+    "base": {"primitive": "box", "size": [100, 100, 12]},
+    "ball": {"primitive": "sphere", "radius": 18}
+  },
+  "constraints": [
+    {"type": "point_plane_offset", "point": "ball.center", "plane": "base.+z", "offset": 18.0},
+    {"type": "point_plane_offset", "point": "ball.center", "plane": "base.+z", "in_plane": "x", "value": 10},
+    {"type": "point_plane_offset", "point": "ball.center", "plane": "base.+z", "in_plane": "y", "value": -8}
+  ]
+}

@@ -1,0 +1,543 @@
+{
+  "ground": "base",
+  "bodies": {
+    "base": {
+      "primitive": "box",
+      "size": [
+        360.0,
+        280.0,
+        14.0
+      ]
+    },
+    "p_0_0": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_0_1": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_0_2": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_0_3": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_1_0": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_1_1": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_1_2": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_1_3": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_2_0": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_2_1": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_2_2": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_2_3": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_3_0": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_3_1": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_3_2": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    },
+    "p_3_3": {
+      "primitive": "box",
+      "size": [
+        14.0,
+        14.0,
+        32.0
+      ]
+    }
+  },
+  "constraints": [
+    {
+      "type": "contact",
+      "a": "p_0_0.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_0.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_0.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": -105.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_0.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": -105.0
+    },
+    {
+      "type": "contact",
+      "a": "p_0_1.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_1.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_1.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": -35.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_1.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": -105.0
+    },
+    {
+      "type": "contact",
+      "a": "p_0_2.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_2.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_2.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": 35.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_2.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": -105.0
+    },
+    {
+      "type": "contact",
+      "a": "p_0_3.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_3.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_3.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": 105.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_0_3.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": -105.0
+    },
+    {
+      "type": "contact",
+      "a": "p_1_0.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_0.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_0.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": -105.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_0.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": -35.0
+    },
+    {
+      "type": "contact",
+      "a": "p_1_1.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_1.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_1.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": -35.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_1.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": -35.0
+    },
+    {
+      "type": "contact",
+      "a": "p_1_2.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_2.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_2.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": 35.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_2.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": -35.0
+    },
+    {
+      "type": "contact",
+      "a": "p_1_3.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_3.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_3.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": 105.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_1_3.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": -35.0
+    },
+    {
+      "type": "contact",
+      "a": "p_2_0.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_0.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_0.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": -105.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_0.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": 35.0
+    },
+    {
+      "type": "contact",
+      "a": "p_2_1.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_1.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_1.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": -35.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_1.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": 35.0
+    },
+    {
+      "type": "contact",
+      "a": "p_2_2.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_2.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_2.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": 35.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_2.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": 35.0
+    },
+    {
+      "type": "contact",
+      "a": "p_2_3.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_3.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_3.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": 105.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_2_3.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": 35.0
+    },
+    {
+      "type": "contact",
+      "a": "p_3_0.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_0.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_0.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": -105.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_0.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": 105.0
+    },
+    {
+      "type": "contact",
+      "a": "p_3_1.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_1.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_1.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": -35.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_1.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": 105.0
+    },
+    {
+      "type": "contact",
+      "a": "p_3_2.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_2.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_2.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": 35.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_2.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": 105.0
+    },
+    {
+      "type": "contact",
+      "a": "p_3_3.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_3.center",
+      "plane": "base.+z",
+      "offset": 16.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_3.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": 105.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "p_3_3.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": 105.0
+    }
+  ]
+}

@@ -1,6 +1,6 @@
-# Natural-language CAD brief template
+# 自然语言 CAD 简报模板
 
-Use this as an internal note-taking scaffold. Do not ask the user to fill it out.
+作为内部笔记提纲使用。勿要求用户填写。
 
 ```text
 CAD brief:
@@ -12,7 +12,7 @@ CAD brief:
 - Functional features:
 - Manufacturing assumptions:
 - Positioning/mating requirements:
-  - source-level joints or explicit placements:
+  - constraints between primitive bodies or explicit transforms:
 - STEP source path:
 - STEP target path:
 - Secondary outputs:

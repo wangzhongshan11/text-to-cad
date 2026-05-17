@@ -100,21 +100,14 @@ def export_xcaf_doc_step_scene(
     label: str | None = None,
     originating_system: str = "build123d",
 ) -> LoadedStepScene:
-    from build123d.exporters3d import (
-        APIHeaderSection_MakeHeader,
-        IFSelect_ReturnStatus,
-        IGESControl_Controller,
-        Interface_Static,
-        Message,
-        Message_Gravity,
-        PrecisionMode,
-        STEPCAFControl_Controller,
-        STEPCAFControl_Writer,
-        STEPControl_Controller,
-        STEPControl_StepModelType,
-        TCollection_HAsciiString,
-        XSControl_WorkSession,
-    )
+    from OCP.IFSelect import IFSelect_ReturnStatus
+    from OCP.IGESControl import IGESControl_Controller
+    from OCP.Interface import Interface_Static
+    from OCP.Message import Message, Message_Gravity
+    from OCP.STEPCAFControl import STEPCAFControl_Controller, STEPCAFControl_Writer
+    from OCP.STEPControl import STEPControl_Controller, STEPControl_StepModelType
+    from OCP.XSControl import XSControl_WorkSession
+    from build123d.build_enums import PrecisionMode
 
     output_path = output_path.expanduser().resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -129,10 +122,8 @@ def export_xcaf_doc_step_scene(
     writer.SetLayerMode(True)
     writer.SetNameMode(True)
 
-    header = APIHeaderSection_MakeHeader(writer.Writer().Model())
-    if label:
-        header.SetName(TCollection_HAsciiString(label))
-    header.SetOriginatingSystem(TCollection_HAsciiString(originating_system))
+    # STEP file header metadata is optional; newer build123d/OCP wheels omit APIHeaderSection.
+    _ = (label, originating_system)
 
     STEPCAFControl_Controller.Init_s()
     STEPControl_Controller.Init_s()

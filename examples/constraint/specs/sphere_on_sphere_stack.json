@@ -1,0 +1,16 @@
+{
+  "ground": "base",
+  "bodies": {
+    "base": {"primitive": "box", "size": [100, 100, 20]},
+    "ball": {"primitive": "sphere", "radius": 18},
+    "knob": {"primitive": "sphere", "radius": 10}
+  },
+  "constraints": [
+    {"type": "point_plane_offset", "point": "ball.center", "plane": "base.+z", "offset": 18.0},
+    {"type": "point_plane_offset", "point": "ball.center", "plane": "base.+z", "in_plane": "x", "value": 12},
+    {"type": "point_plane_offset", "point": "ball.center", "plane": "base.+z", "in_plane": "y", "value": -8},
+    {"type": "point_plane_offset", "point": "knob.center", "plane": "base.+z", "offset": 36.0},
+    {"type": "point_plane_offset", "point": "knob.center", "plane": "base.+z", "in_plane": "x", "value": 12},
+    {"type": "point_plane_offset", "point": "knob.center", "plane": "base.+z", "in_plane": "y", "value": -8}
+  ]
+}

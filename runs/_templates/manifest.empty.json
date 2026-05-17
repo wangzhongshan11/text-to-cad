@@ -1,0 +1,25 @@
+{
+  "run_id": "",
+  "created_at": "",
+  "updated_at": "",
+  "agent": {
+    "product": "",
+    "model": ""
+  },
+  "task": "",
+  "prompt_ref": "",
+  "intent": {
+    "user_request": "",
+    "cad_brief": {},
+    "assumptions": [],
+    "open_questions": []
+  },
+  "iterations": [],
+  "final": {
+    "status": "in_progress",
+    "summary": "",
+    "specs": [],
+    "step_outputs": [],
+    "validation": {}
+  }
+}

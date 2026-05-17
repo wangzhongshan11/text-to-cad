@@ -181,6 +181,25 @@ def find_source_by_cad_ref(cad_ref: str, root: Path | None = None) -> CadSource 
     return source_by_cad_ref(root).get(normalized or "")
 
 
+def find_step_path(cad_ref: str, root: Path | None = None) -> Path | None:
+    source = find_source_by_cad_ref(cad_ref, root=root)
+    if source is not None and source.kind in {"part", "assembly"}:
+        return source.step_path.resolve() if source.step_path is not None else None
+    return None
+
+
+def resolve_cad_source_path(cad_ref: str, root: Path | None = None) -> tuple[str, Path] | None:
+    source = find_source_by_cad_ref(cad_ref, root=root)
+    if source is None:
+        return None
+    if source.kind == "assembly":
+        return "assembly", source.source_path
+    if source.kind == "part":
+        step_path = source.step_path
+        return ("part", step_path) if step_path is not None else None
+    return None
+
+
 def find_source_by_source_ref(source_ref: str, root: Path | None = None) -> CadSource | None:
     normalized = normalize_source_ref(source_ref)
     if not normalized:
@@ -298,11 +317,17 @@ def _read_python_source(script_path: Path) -> CadSource | None:
     metadata = parse_generator_metadata(resolved_script_path)
     if metadata is None:
         return None
-    if metadata.kind not in {"part", "assembly"}:
+    if metadata.kind != "part":
         raise CadSourceError(
-            f"{_relative_to_repo(resolved_script_path)} must define a part or assembly gen_step() entry"
+            f"{_relative_to_repo(resolved_script_path)} gen_step() must return a build123d Shape or Compound"
         )
-    step_path = resolved_script_path.with_suffix(".step")
+    step_path = _resolve_configured_artifact_path(
+        metadata.step_output,
+        base_path=resolved_script_path,
+        default_path=resolved_script_path.with_suffix(".step"),
+        expected_suffixes=STEP_SUFFIXES,
+        field_name="step_output",
+    )
     dxf_path = resolved_script_path.with_suffix(".dxf") if metadata.has_gen_dxf else None
     urdf_path = (
         _resolve_configured_artifact_path(

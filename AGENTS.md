@@ -1,78 +1,72 @@
 # AGENTS.md
 
-This repository is a harness for script-driven CAD generation with coding agents like Codex and Claude Code.
+本仓库是面向 Codex、Claude Code 等编程智能体的脚本驱动 CAD 生成脚手架。
 
-If you are modifying CAD Explorer itself, go to `.agents/skills/cad/explorer/README.md`.
+若要修改 CAD Explorer 本体，请参阅 `.agents/skills/cad/explorer/README.md`。
 
-## Skill Routing
+## 技能路由
 
-Use the bundled skills for workflow details:
+工作流细节请使用内置技能文档：
 
-- `.agents/skills/cad/SKILL.md` for STEP, STL, 3MF, DXF, GLB/topology artifacts, render images, and `@cad[...]` prompt references.
-- `.agents/skills/urdf/SKILL.md` for generated URDF files, `gen_urdf()`, robot links, joints, limits, and URDF mesh references.
-- `.agents/skills/robot-motion/SKILL.md` for ROS 2/MoveIt dependency setup, running the motion server, and generating IK/path-planning artifacts for an existing URDF.
+- `.agents/skills/cad/SKILL.md`：STEP、STL、3MF、DXF、GLB/拓扑产物、渲染图、`@cad[...]` 提示引用，以及 box/cylinder/sphere 约束装配（`constraint_assembly`，`gen_step()` 仍返回 `shape_or_compound`）。
+- `.agents/skills/urdf/SKILL.md`：生成的 URDF 文件、`gen_urdf()`、连杆、关节、限位以及 URDF 网格引用。
+- `.agents/skills/robot-motion/SKILL.md`：ROS 2/MoveIt 依赖安装、运行 motion 服务端，以及为既有 URDF 生成 IK/轨迹规划产物。
 
-Use the URDF skill when generating or editing a robot description. If an existing valid URDF already exists, the robot-motion skill can attach motion artifacts to it directly; use robot-motion for inverse kinematics, path planning, motion artifact generation, and motion-server testing.
+生成或编辑机器人描述时请使用 URDF 技能。若已有合法 URDF，可直接用 robot-motion 技能挂载运动产物；逆运动学、轨迹规划、运动产物生成与 motion 服务端测试请使用 robot-motion。
 
-`AGENTS.md` is intentionally harness-focused. Reusable CAD, URDF, and robot-motion workflow rules live inside the skills.
+`AGENTS.md` 刻意聚焦于脚手架层面；可复用的 CAD、URDF、robot-motion 规则写在各技能文档内。
 
-## Harness Context
+## 脚手架上下文
 
-Project CAD files are repo-relative. This harness does not reserve a
-project-file directory. Project CAD entries may live at the repository root
-under folders such as `STEP/`, `STL/`, `DXF/`, and `3MF/`, or in another
-explicit repo-relative layout chosen by the project.
+项目 CAD 文件路径相对于仓库根目录。本脚手架不预留固定的「项目文件」目录。CAD 条目可位于仓库根下的 `STEP/`、`STL/`、`DXF/`、`3MF/` 等文件夹，或由项目自选的其他明确仓库相对路径布局。
 
-The CAD and URDF skill tools are file-targeted. They do not depend on a harness
-layout or prepend a project root.
+CAD 与 URDF 技能工具均以文件为目标，不依赖特定脚手架布局，也不会自动前缀项目根路径。
 
-Project-specific context may live in compact root-level notes such as
-`PROJECT.md`. Do not copy reusable generator contracts, prompt-reference rules,
-validation policy, Explorer/link rules, image review policy, or full CLI syntax
-into them; link to the relevant skill references instead.
+项目专属上下文可写在简洁的根级笔记（如 `PROJECT.md`）中。请勿把可复用的生成器约定、提示引用规则、校验策略、Explorer/链接规则、图像审阅策略或完整 CLI 语法复制进去；请改为链接到对应技能文档。
 
-For CAD Explorer scan-root, link, and `@cad[...]` behavior, defer to
-`.agents/skills/cad/SKILL.md` and its Explorer/rendering references.
+CAD Explorer 的扫描根目录、链接行为以及 `@cad[...]` 语义，请以 `.agents/skills/cad/SKILL.md` 及其 Explorer/渲染引用为准。
 
-## Python Environment
+`docs/internal/` 为维护者设计稿与历史笔记，**不是**代理工作流参考；约束装配日常以 `.agents/skills/cad/references/constraint-assembly.md` 为准。
 
-Prefer the repo-local CAD runtime when it exists:
+多轮任务（意图理解、工具反馈、修正）用 **`runs/`** 记录：见 `runs/README.md`，CLI 为 `runs/tools/record_run.py`（`init` → `intent` → `round` / `feedback` / `step` → `finalize` → `render`）。任务结束前生成 `RUN.md` 摘要，不替代 IDE transcript。
+
+## Python 环境
+
+若存在仓库本地的 CAD 运行时，请优先使用：
 
 ```bash
 ./.venv/bin/python
 ```
 
-This environment has the CAD dependencies required by the skill tools, including
-`build123d` and `OCP`. If `.venv` is missing or cannot import those modules,
-create/install it from the repo root before running CAD tools:
+该环境包含技能工具所需的 CAD 依赖（含 `build123d` 与 `OCP`）。若缺少 `.venv` 或无法导入上述模块，请在运行 CAD 工具前于仓库根目录创建并安装：
 
 ```bash
 python3.11 -m venv .venv
 ./.venv/bin/pip install -r .agents/skills/cad/requirements.txt
 ```
 
-Other bundled skills own their Python dependencies in their skill directories; install them only when using those workflows.
+其他内置技能的 Python 依赖各自定义在对应技能目录；仅在用到相关工作流时再安装。
 
-## Source Of Truth
+## 单一事实来源（Source Of Truth）
 
-- Generated CAD, URDF, robot-motion outputs, Explorer sidecars, renders, topology, meshes, and flat-pattern artifacts are derived artifacts.
-- Do not hand-edit derived artifacts unless explicitly instructed. Edit the owning source file or imported source file first, then regenerate explicit targets with the relevant skill tool.
-- If regenerated output differs from checked-in generated files, the regenerated output is authoritative.
+- 生成的 CAD、URDF、robot-motion 输出、Explorer 侧车文件、渲染、拓扑、网格以及展开图等均为派生产物。
+- 除非明确要求，请勿手工编辑派生产物。请先修改所属的源码或其所导入的源码，再用对应技能工具按明确目标重新生成。
+- 若重新生成的结果与仓库中已提交的生成文件不一致，以重新生成的结果为准。
 
-## Repo Policies
+## 仓库策略
 
-- Keep project CAD files in explicit repo-relative locations.
-- Use explicit generation targets. Do not run directory-wide generation.
-- Generation tools write and overwrite current configured outputs. They do not delete stale outputs when paths change.
-- Update project-local documentation only when project focus, entry roles, inventory, dependency notes, durable quirks, or preferred rebuild roots change.
-- CAD outputs are often LFS-tracked, and broad status checks can invoke LFS clean filters while generated files are changing; prefer path-limited `git status` during CAD work.
-- For bookkeeping-only full status, use `git -c filter.lfs.clean= -c filter.lfs.smudge= -c filter.lfs.process= -c filter.lfs.required=false status --short`.
-- Never disable LFS filters for `git add`, commits, or other object-writing operations.
+- 将项目 CAD 文件放在明确的仓库相对路径下。
+- 使用明确的生成目标；不要对整个目录做批量生成。
+- 生成工具会写入并覆盖当前配置的输出；路径变更时不会自动删除陈旧输出。
+- 仅在项目侧重点、入口角色、清单、依赖说明、长期特例或首选重建根发生变化时，再更新项目本地文档。
+- CAD 输出常被 LFS 跟踪；大范围 `git status` 可能在生成文件变动时触发 LFS clean 过滤器；CAD 工作期间建议使用限定路径的 `git status`。
+- 若仅需记账用的完整状态，可使用 `git -c filter.lfs.clean= -c filter.lfs.smudge= -c filter.lfs.process= -c filter.lfs.required=false status --short`。
+- 禁止对 `git add`、提交或其他写入对象的操作禁用 LFS 过滤器。
 
-## Execution Notes
+## 执行要点
 
-- Start with the narrowest source-only search that can identify directly affected files.
-- Exclude generated artifacts, binary CAD files, caches, and build outputs from default searches unless the task explicitly targets them.
-- If the first pass makes scope clear, edit the source first and validate after.
-- Do not run mutable generation, inspection, and render/review steps in parallel against geometry that is still changing in the same edit loop. Rebuild first, then inspect, then review.
-- In cloud or constrained environments, avoid full-repo hydration when affected entries are known. Fetch only the needed inputs, generated outputs, and LFS objects for the entries being edited and explicitly regenerated.
+- 从尽量窄、且仅限源码的检索开始，以定位直接受影响的文件。
+- 除非任务明确针对这些内容，否则默认检索应排除生成产物、二进制 CAD、缓存与构建输出。
+- 若第一轮已厘清范围，应先改源码再验证。
+- 在同一编辑循环中，几何仍在变动时，不要将可变的生成、检查与渲染/审阅步骤并行执行。应先重建，再检查，最后审阅。
+- 在云环境或资源受限环境中，若已知受影响条目，应避免整仓 hydrating；仅拉取编辑并明确重新生成所需的输入、生成输出及对应 LFS 对象。

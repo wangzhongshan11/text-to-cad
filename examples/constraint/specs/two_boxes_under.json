@@ -1,0 +1,12 @@
+{
+  "ground": "base",
+  "bodies": {
+    "base": {"primitive": "box", "size": [200, 150, 20]},
+    "b1": {"primitive": "box", "size": [40, 30, 25]},
+    "b2": {"primitive": "box", "size": [35, 28, 22]}
+  },
+  "constraints": [
+    {"type": "contact", "a": "b1.-z", "b": "base.+z"},
+    {"type": "contact", "a": "b2.-z", "b": "base.+z"}
+  ]
+}

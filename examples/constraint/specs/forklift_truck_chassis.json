@@ -1,0 +1,255 @@
+{
+  "ground": "chassis",
+  "bodies": {
+    "chassis": {
+      "primitive": "box",
+      "size": [
+        1320.0,
+        820.0,
+        200.0
+      ]
+    },
+    "wheel_fl": {
+      "primitive": "box",
+      "size": [
+        110.0,
+        380.0,
+        110.0
+      ]
+    },
+    "wheel_fr": {
+      "primitive": "box",
+      "size": [
+        110.0,
+        380.0,
+        110.0
+      ]
+    },
+    "wheel_rl": {
+      "primitive": "box",
+      "size": [
+        110.0,
+        380.0,
+        110.0
+      ]
+    },
+    "wheel_rr": {
+      "primitive": "box",
+      "size": [
+        110.0,
+        380.0,
+        110.0
+      ]
+    },
+    "counterweight": {
+      "primitive": "box",
+      "size": [
+        420.0,
+        720.0,
+        340.0
+      ]
+    }
+  },
+  "constraints": [
+    {
+      "type": "contact",
+      "a": "wheel_fl.-z",
+      "b": "chassis.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fl.center",
+      "plane": "chassis.+z",
+      "offset": 55.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fl.center",
+      "plane": "chassis.+z",
+      "in_plane": "x",
+      "value": -500.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fl.center",
+      "plane": "chassis.+z",
+      "in_plane": "y",
+      "value": 285.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_fl.axis_z",
+      "b": "chassis.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_fl.axis_x",
+      "b": "chassis.axis_x"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_fl.axis_y",
+      "b": "chassis.axis_y"
+    },
+    {
+      "type": "contact",
+      "a": "wheel_fr.-z",
+      "b": "chassis.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fr.center",
+      "plane": "chassis.+z",
+      "offset": 55.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fr.center",
+      "plane": "chassis.+z",
+      "in_plane": "x",
+      "value": 500.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fr.center",
+      "plane": "chassis.+z",
+      "in_plane": "y",
+      "value": 285.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_fr.axis_z",
+      "b": "chassis.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_fr.axis_x",
+      "b": "chassis.axis_x"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_fr.axis_y",
+      "b": "chassis.axis_y"
+    },
+    {
+      "type": "contact",
+      "a": "wheel_rl.-z",
+      "b": "chassis.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rl.center",
+      "plane": "chassis.+z",
+      "offset": 55.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rl.center",
+      "plane": "chassis.+z",
+      "in_plane": "x",
+      "value": -500.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rl.center",
+      "plane": "chassis.+z",
+      "in_plane": "y",
+      "value": -285.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rl.axis_z",
+      "b": "chassis.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rl.axis_x",
+      "b": "chassis.axis_x"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rl.axis_y",
+      "b": "chassis.axis_y"
+    },
+    {
+      "type": "contact",
+      "a": "wheel_rr.-z",
+      "b": "chassis.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rr.center",
+      "plane": "chassis.+z",
+      "offset": 55.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rr.center",
+      "plane": "chassis.+z",
+      "in_plane": "x",
+      "value": 500.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rr.center",
+      "plane": "chassis.+z",
+      "in_plane": "y",
+      "value": -285.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rr.axis_z",
+      "b": "chassis.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rr.axis_x",
+      "b": "chassis.axis_x"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rr.axis_y",
+      "b": "chassis.axis_y"
+    },
+    {
+      "type": "contact",
+      "a": "counterweight.-z",
+      "b": "chassis.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "counterweight.center",
+      "plane": "chassis.+z",
+      "offset": 170.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "counterweight.center",
+      "plane": "chassis.+z",
+      "in_plane": "x",
+      "value": -370.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "counterweight.center",
+      "plane": "chassis.+z",
+      "in_plane": "y",
+      "value": 0.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "counterweight.axis_z",
+      "b": "chassis.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "counterweight.axis_x",
+      "b": "chassis.axis_x"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "counterweight.axis_y",
+      "b": "chassis.axis_y"
+    }
+  ]
+}

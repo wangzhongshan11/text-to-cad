@@ -23,11 +23,32 @@ dist
 dist-verify
 coverage
 
+# Constraint validation outputs (regenerable)
+examples/constraint/out/
+examples/constraint/parts/
+
 # Temporary files
 *.tmp
 *.swp
 tmp/
 
-# CAD source, generated STEP outputs, and explorer CAD artifacts are tracked via Git LFS in .gitattributes.
+# CAD / mesh binaries (regenerate via scripts/step; keep out of git / LFS)
+**/*.step
+**/*.stp
+**/*.STEP
+**/*.STP
+**/*.glb
+**/*.GLB
+**/*.stl
+**/*.STL
+**/*.3mf
+**/*.3MF
+**/.assets/
+
+# Explorer sidecars next to STEP (hidden GLB + topology)
+**/.*.step.glb
+**/.*.stp.glb
+**/.*.step/topology.bin
+**/.*.step/topology.json
 
 copy-tom-source

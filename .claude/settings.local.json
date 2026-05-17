@@ -3,7 +3,10 @@
     "allow": [
       "Bash(./.venv/Scripts/python.exe:*)",
       "Bash(python:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(.venv/bin/python *)",
+      "Bash(PYTHONPATH=\".agents/skills/cad/scripts\" .venv/bin/python *)",
+      "Bash(ROOT_DIR=. npm *)"
     ]
   }
 }

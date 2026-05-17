@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from common.assembly_spec import REPO_ROOT, find_step_path, resolve_cad_source_path
+from common.catalog import REPO_ROOT, find_step_path, resolve_cad_source_path
 from common.cad_ref_syntax import normalize_cad_path, parse_cad_tokens
 from common.glb_topology import read_step_topology_bundle_from_glb, read_step_topology_manifest_from_glb
 from common.render import existing_part_glb_path, part_glb_path, sha256_file

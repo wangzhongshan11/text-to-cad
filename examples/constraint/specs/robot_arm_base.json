@@ -1,0 +1,159 @@
+{
+  "ground": "base",
+  "bodies": {
+    "base": {
+      "primitive": "box",
+      "size": [
+        260.0,
+        260.0,
+        38.0
+      ]
+    },
+    "column": {
+      "primitive": "box",
+      "size": [
+        92.0,
+        92.0,
+        235.0
+      ]
+    },
+    "slew": {
+      "primitive": "box",
+      "size": [
+        118.0,
+        118.0,
+        30.0
+      ]
+    },
+    "shoulder": {
+      "primitive": "box",
+      "size": [
+        90.0,
+        76.0,
+        68.0
+      ]
+    }
+  },
+  "constraints": [
+    {
+      "type": "contact",
+      "a": "column.-z",
+      "b": "base.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "column.center",
+      "plane": "base.+z",
+      "offset": 117.5
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "column.center",
+      "plane": "base.+z",
+      "in_plane": "x",
+      "value": 0.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "column.center",
+      "plane": "base.+z",
+      "in_plane": "y",
+      "value": 0.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "column.axis_z",
+      "b": "base.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "column.axis_x",
+      "b": "base.axis_x"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "column.axis_y",
+      "b": "base.axis_y"
+    },
+    {
+      "type": "contact",
+      "a": "slew.-z",
+      "b": "column.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "slew.center",
+      "plane": "column.+z",
+      "offset": 15.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "slew.center",
+      "plane": "column.+z",
+      "in_plane": "x",
+      "value": 0.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "slew.center",
+      "plane": "column.+z",
+      "in_plane": "y",
+      "value": 0.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "slew.axis_z",
+      "b": "base.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "slew.axis_x",
+      "b": "base.axis_x"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "slew.axis_y",
+      "b": "base.axis_y"
+    },
+    {
+      "type": "contact",
+      "a": "shoulder.-z",
+      "b": "slew.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "shoulder.center",
+      "plane": "slew.+z",
+      "offset": 34.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "shoulder.center",
+      "plane": "slew.+z",
+      "in_plane": "x",
+      "value": 0.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "shoulder.center",
+      "plane": "slew.+z",
+      "in_plane": "y",
+      "value": 0.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "shoulder.axis_z",
+      "b": "base.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "shoulder.axis_x",
+      "b": "base.axis_x"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "shoulder.axis_y",
+      "b": "base.axis_y"
+    }
+  ]
+}

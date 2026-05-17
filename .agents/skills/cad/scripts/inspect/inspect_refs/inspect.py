@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 
-from common.assembly_spec import REPO_ROOT
+from common.catalog import REPO_ROOT
 from common import cad_ref_syntax as syntax
 from common.reporting import (
     EntryReportOptions,
@@ -50,7 +50,7 @@ class TargetSelection:
     copy_text: str
 
 
-EntryContextProvider = Callable[[str, SelectorProfile], EntryContext | None]
+EntryContextProvider = Callable[[str, SelectorProfile], Optional[EntryContext]]
 
 
 def inspect_cad_refs(

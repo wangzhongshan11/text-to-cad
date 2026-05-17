@@ -1,30 +1,28 @@
-# build123d modeling patterns
+# build123d 建模模式
 
-Read this file when writing or repairing build123d Python source.
+编写或修复 build123d Python 源码时阅读本文。
 
-## Modeling objective
+## 建模目标
 
-Create a valid STEP-ready BREP model, not a visual mesh. Prefer closed solids, explicit labels, and stable parametric dimensions.
+创建可供 STEP 输出的有效 BREP 模型，而非视觉网格。优先封闭实体、明确标签与稳定的参数化尺寸。
 
-## Topology stack
+## 拓扑栈
 
-Think in this order:
+按此顺序思考：
 
 ```text
 Vertex → Edge → Wire → Face → Shell → Solid → Compound
 ```
 
-For normal STEP output, return one of:
+常规 STEP 输出应返回以下之一：
 
-- a valid `Solid`
-- a compound of valid solids
-- a labeled assembly compound
+- 有效 `Solid`
+- 有效实体的组合体
+- 带标签的装配组合体
 
-Avoid returning loose wires, open faces, or construction surfaces unless the user explicitly requested them.
+除非用户明确要求，否则避免返回松散线、开放面或构造曲面。
 
-## Source envelope
-
-Generated sources should define:
+## `gen_step()` 返回值
 
 ```python
 def gen_step():
@@ -32,11 +30,13 @@ def gen_step():
     return shape_or_compound
 ```
 
-Do not hardcode output paths inside `gen_step()`. The CLI owns output paths.
+只返回 build123d 的 `Solid`、`Compound` 等形体。约束装配用 `return constraint_assembly(CONSTRAINTS, parts)`（同样是 `Compound`，见 `constraint-assembly.md`）。
 
-## Parameters first
+不要 `return` dict、list 或任何 envelope。STEP 默认写在脚本同目录、与脚本同名的 `.step`；若要改路径，在模块顶层写 `STEP_OUTPUT = "relative/path.step"`，不要从 `gen_step()` 返回路径字段。
 
-Put meaningful dimensions in named variables:
+## 参数优先
+
+将有意义尺寸放入命名变量：
 
 ```python
 width = 80.0
@@ -47,11 +47,11 @@ hole_offset_x = 30.0
 hole_offset_y = 17.5
 ```
 
-Avoid burying important numbers inside geometry calls.
+避免将重要数值埋在几何调用内部。
 
-## Coordinate system
+## 坐标系
 
-Declare or comment the convention:
+声明或注释约定：
 
 ```text
 Origin: center of primary part or chosen mating datum
@@ -59,11 +59,11 @@ XY: main base/sketch plane
 +Z: up/extrusion direction
 ```
 
-Use `Location`, `Plane`, and `Axis` intentionally. For positioning-sensitive tasks and source-level assembly relationships, read `positioning.md`.
+有意使用 `Location`、`Plane` 与 `Axis`。对定位敏感任务与源码级装配关系，见 `positioning.md`。
 
-## Builder contexts
+## 构造器上下文
 
-Use the context that matches the geometry:
+选用与几何匹配的上下文：
 
 ```python
 with BuildLine() as path:
@@ -76,28 +76,28 @@ with BuildPart() as part:
     ...
 ```
 
-Typical flow:
+典型流程：
 
 ```text
 curves/paths → sketches/profiles → solids/features → labels → STEP
 ```
 
-## Primitives
+## 基本体
 
-Use canonical primitives when they fit the design intent:
+设计意图合适时使用规范基本体：
 
-- `Box` for rectangular blocks and plates
-- `Cylinder` for bosses, rods, pins, and subtractive cylindrical cuts
-- `Sphere` for knobs or spherical ends
-- `Torus` for rings and circular sweeps
-- `Cone` for tapered features
-- `Wedge` for sloped solids
+- `Box`：矩形块与板
+- `Cylinder`：凸台、杆、销与减材圆柱切除
+- `Sphere`：旋钮或球端
+- `Torus`：环与圆扫掠
+- `Cone`：锥形特征
+- `Wedge`：斜面实体
 
-Use sketches plus `extrude`, `revolve`, `sweep`, or `loft` when the shape is profile-driven.
+形状由截面驱动时使用草图加 `extrude`、`revolve`、`sweep` 或 `loft`。
 
-## Feature operations
+## 特征操作
 
-Map design intent to operations:
+将设计意图映射到操作：
 
 ```text
 hole              → Hole or subtractive cylinder
@@ -113,33 +113,51 @@ revolved part     → revolve profile
 swept tube/rail   → sweep profile along path
 ```
 
-## Selection practices
+## 选择实践
 
-Avoid fragile topology order when possible. Select by:
+尽可能避免脆弱拓扑序。按下述方式选择：
 
-- axis or normal
-- location or bounding position
-- plane grouping
-- feature intent
-- stable construction plane
-- inspected `@cad[...]` reference for downstream validation
+- 轴或法向
+- 位置或包围位置
+- 平面分组
+- 特征意图
+- 稳定构造平面
+- 用于下游校验的已检查 `@cad[...]` 引用
 
-For source operations, prefer robust selectors such as top/bottom by axis or position rather than arbitrary list indexes.
+源码操作中，优先采用鲁棒选择器（如按轴或位置取顶/底），而非任意列表下标。
 
+## 装配与定位
 
-## Assemblies and positioning
+零件局部坐标与 `inspect` 校验见 `positioning.md`。box/cylinder/sphere 约束词汇与 `constraint_assembly` API 见 `constraint-assembly.md`。
 
-For assemblies, keep this file focused on BREP modeling patterns and labels. Use `positioning.md` as the single source of truth for:
+### 装配分解（子链路）
 
-- part-local coordinate conventions
-- when to use build123d joints versus explicit `Location` transforms
-- `connect_to()` behavior
-- CLI `inspect mate` as read-only validation
-- frame, measure, and positioning report expectations
+复杂装配先按**功能区域**拆子链路，再为每段选定位方式。不要把所有零件默认塞进一个 `CONSTRAINTS`。
 
-## Labels and assemblies
+| 范围 | 推荐 | 示例 |
+|------|------|------|
+| 区域内、重复件 | 公式 + `Location` / `GridLocations` | 等距层板、柱阵 |
+| 区域内、少量配合 | 小规模 `constraint_assembly` | 围板贴合、双柱 |
+| 区域间 | 少量约束，或对子 `Compound` 一次 `.moved(...)` | 托盘装入机箱、台面落四腿 |
 
-Label every exported part and assembly child:
+规则：
+
+- 同一 `body_id`：只进 `CONSTRAINTS` **或** 只用 `Location`，不要两种同时定位同一零件。
+- 已用约束求解的区域，其相关零件不要在区域外再用堆砌补位；应在简报里拆成独立子链路（见 `natural-language-specs.md`）。
+- 区域间优先连接面/轴/铰链，避免对大组件重复写全套 in_plane 偏移。
+
+```python
+def gen_step():
+    shell = constraint_assembly(SHELL_CONSTRAINTS, shell_parts)
+    interior = Compound(children=[panel.moved(Location((x, y, z))) for ...])
+    return Compound(label="assembly", children=[shell, interior])
+```
+
+仓库示例：`examples/constraint/assemblies/wardrobe_closet/wardrobe_closet.py`（围板约束 + 层板 Location）。对话 prompt 样例：`examples/constraint/chatExamples/prompts.md`。
+
+## 标签与装配体
+
+为每个导出零件与装配子项打标签：
 
 ```python
 base.label = "base"
@@ -147,19 +165,16 @@ lid.label = "lid"
 assembly.label = "electronics_enclosure"
 ```
 
-For repeated parts, keep transforms or joint connections explicit and inspect frames/positioning after generation.
+重复零件保持变换或关节连接明确，生成后检查 frame/定位。
 
-## Common failure modes
+## 常见失败模式
 
-- Fillet radius larger than local edge geometry.
-- Subtractive tool does not pass fully through target material.
-- Open sketch profile produces invalid or missing face.
-- Face selector changes after a boolean or fillet.
-- Source-level assembly composition is lost by re-importing generated STEP instead of using the Python assembly source.
-- Part origin is arbitrary and later mating checks become ambiguous.
-- Joint labels are duplicated within the same part.
-- Source-level joints are treated as if they were persistent STEP constraints rather than one-time source placement operations.
-- Joint labels are missing, duplicated, or attached to the wrong local datum.
-- `.connect_to()` fixes the wrong side of the relationship, moving the part intended to remain fixed.
+- 圆角半径大于局部棱边几何允许值。
+- 减材刀具未完全穿透目标材料。
+- 开放草图截面导致无效或缺失面。
+- 布尔或圆角后面选择器发生变化。
+- 用重新导入生成 STEP 代替 Python 装配源码导致源码级装配组合丢失。
+- 零件原点随意导致后续配合检查含糊。
+- `CONSTRAINTS.bodies` 尺寸与 build123d 实体尺寸不一致。
 
-Use `repair-loop.md` when generation or validation fails.
+生成或校验失败时使用 `repair-loop.md`。

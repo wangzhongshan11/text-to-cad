@@ -1,10 +1,10 @@
-# Motion Artifact Envelopes
+# 运动产物封装
 
-Use `gen_motion()` when a URDF should expose inverse kinematics or path planning through CAD Explorer and the local motion server. The URDF can come from any source, as long as it is a valid repo-local `.urdf` and the motion config references real robot links, joints, frames, and end effectors.
+当需要通过 CAD Explorer 与本地运动服务器对外暴露逆运动学或路径规划时使用 `gen_motion()`。URDF 可来自任意来源，只要是有效的仓库内 `.urdf`，且运动配置引用真实的机器人连杆、关节、坐标系与末端执行器即可。
 
-## Source Shape
+## 源码形态
 
-Define a zero-arg `gen_motion()` in the Python file that owns the URDF, or in a nearby Python source:
+在持有 URDF 的 Python 文件或邻近 Python 源码中定义零参数 `gen_motion()`：
 
 ```python
 def gen_motion() -> dict[str, object]:
@@ -41,34 +41,34 @@ def gen_motion() -> dict[str, object]:
     }
 ```
 
-## Fields
+## 字段说明
 
-- `urdf`: path to the generated `.urdf`, relative to the Python source file.
-- `provider`: currently `moveit_py`.
-- `commands`: use `["urdf.solvePose"]` for pose-solve-only; add `urdf.planToPose` for planning.
-- `planningGroup`: MoveIt planning group name for the active arm or chain.
-- `jointNames`: non-fixed URDF joints in planning-group order. Revolute values are degrees on the websocket wire and radians in generated SRDF group states.
-- `planningGroups`: optional array of MoveIt planning groups. Use this when one URDF exposes multiple independently solved chains, such as two arms with separate TCPs. When omitted, `planningGroup` and `jointNames` define the only group.
-- `endEffectors`: one or more named tool links. Multiple end effectors are valid when they represent distinct tools or TCPs; each should have a stable `name`, controlled `link`, target `frame`, and MoveIt `parentLink`. For multi-group envelopes, set `planningGroup` on each end effector so the motion server uses the matching solver group.
-- `planner`: required only for `urdf.planToPose`.
-- `disabledCollisionPairs`: extra link pairs to disable in SRDF. Adjacent parent/child link pairs are added automatically from URDF joints.
-- `groupStates`: optional SRDF group states. Each entry uses `jointValuesByNameRad`; include `planningGroup` when multiple groups are defined.
+- `urdf`：生成的 `.urdf` 路径，相对于 Python 源码文件。
+- `provider`：当前为 `moveit_py`。
+- `commands`：仅姿态求解使用 `["urdf.solvePose"]`；需要规划时追加 `urdf.planToPose`。
+- `planningGroup`：活动机械臂或链路的 MoveIt 规划组名称。
+- `jointNames`：按规划组排序的非固定 URDF 关节。websocket 传输上转动关节值为度；生成的 SRDF 组状态中为弧度。
+- `planningGroups`：可选的 MoveIt 规划组数组。当一个 URDF 暴露多条可独立求解的链（例如双臂各自 TCP）时使用。省略时，仅由 `planningGroup` 与 `jointNames` 定义唯一组。
+- `endEffectors`：一个或多个具名工具连杆。若代表不同工具或 TCP，允许多个末端执行器；每个应有稳定的 `name`、受控 `link`、目标 `frame` 与 MoveIt `parentLink`。对多组封装，在每个末端执行器上设置 `planningGroup`，以便运动服务器选用匹配的求解组。
+- `planner`：仅在启用 `urdf.planToPose` 时需要。
+- `disabledCollisionPairs`：在 SRDF 中额外禁碰的连杆对。相邻父子连杆对会根据 URDF 关节自动添加。
+- `groupStates`：可选的 SRDF 组状态。每项使用 `jointValuesByNameRad`；定义多组时需包含 `planningGroup`。
 
-## Generated Files
+## 生成文件
 
-Run:
+运行：
 
 ```bash
 python .agents/skills/robot-motion/scripts/gen_motion_artifacts/cli.py sample_robot.py --summary
 ```
 
-The generator writes all motion-owned outputs under `.<urdf filename>/robot-motion/`:
+生成器将所有运动持有的输出写入 `.<urdf filename>/robot-motion/`：
 
 - `explorer.json`
 - `motion_server.json`
 - `moveit2_robot.srdf`
 - `moveit2_kinematics.yaml`
 - `moveit2_py.yaml`
-- `moveit2_planning_pipelines.yaml` when `urdf.planToPose` is enabled
+- 启用 `urdf.planToPose` 时还有 `moveit2_planning_pipelines.yaml`
 
-Regenerate motion artifacts after changing planning joints, end effectors, collision exclusions, planner settings, or the URDF links/joints they reference.
+在变更规划关节、末端执行器、碰撞排除、规划器设置或其引用的 URDF 连杆/关节后，需重新生成运动产物。

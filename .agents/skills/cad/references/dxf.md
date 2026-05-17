@@ -1,20 +1,20 @@
-# DXF secondary workflow
+# DXF 次要工作流
 
-Read this file only when the user requests DXF or 2D drawing output from CAD geometry.
+仅在用户要求从 CAD 几何导出 DXF 或二维图样时阅读本文。
 
-DXF is secondary. Generate and validate the STEP envelope first when the geometry originates from a CAD source. Do not treat DXF layers as STEP part/assembly structure.
+DXF 为次要。若几何源于 CAD 源码，先生成并校验 STEP 包络。勿将 DXF 图层视作 STEP 零件/装配结构。
 
-## Tool
+## 工具
 
 ```bash
 python scripts/dxf targets...
 ```
 
-Only standard help flags are expected.
+仅预期标准帮助类标志位。
 
-## Source requirements
+## 源码要求
 
-A DXF target must be a Python source defining:
+DXF 目标须为定义以下内容的 Python 源码：
 
 ```python
 def gen_dxf():
@@ -22,7 +22,7 @@ def gen_dxf():
     return document, dxf_output
 ```
 
-The same file must also define a valid `gen_step()` envelope because discovery uses the CAD source catalog.
+同一文件还须定义有效 `gen_step()` 包络，因发现流程使用 CAD 源码目录。
 
 ```python
 def gen_step():
@@ -30,23 +30,23 @@ def gen_step():
     return shape_or_compound
 ```
 
-## Workflow
+## 工作流
 
-1. Convert the user's prose into a natural-language CAD brief.
-2. Build or validate the `gen_step()` envelope.
-3. Generate STEP with lightweight facts/planes/positioning inspection.
-4. Start CAD Explorer and return the STEP Explorer link.
-5. Add or update `gen_dxf()` for the requested projection, layout, or drawing output.
-6. Run `scripts/dxf` on explicit Python source targets.
-7. Report the DXF output plus the primary STEP and Explorer link.
+1. 将用户叙述转为自然语言 CAD 简报。
+2. 构建或校验 `gen_step()` 包络。
+3. 生成 STEP 并做轻量 facts/planes/positioning 检查。
+4. 启动 CAD Explorer 并返回 STEP 的 Explorer 链接。
+5. 按请求的投影视图、排版或图样输出添加或更新 `gen_dxf()`。
+6. 对明确 Python 源码目标运行 `scripts/dxf`。
+7. 报告 DXF 输出以及主 STEP 与 Explorer 链接。
 
-## Command
+## 命令
 
 ```bash
 python scripts/dxf path/to/source.py
 ```
 
-## Reporting
+## 报告
 
 ```text
 Files:

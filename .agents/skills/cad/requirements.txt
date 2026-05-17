@@ -1,7 +1,8 @@
 build123d
 ezdxf
 numpy
+scipy
 pillow
 playwright
 trimesh
-vtk
+vtk>=9.2,<9.4

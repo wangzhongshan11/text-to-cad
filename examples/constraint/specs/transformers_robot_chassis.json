@@ -1,0 +1,273 @@
+{
+  "ground": "platform",
+  "bodies": {
+    "platform": {
+      "primitive": "box",
+      "size": [
+        400.0,
+        180.0,
+        55.0
+      ]
+    },
+    "wheel_fl": {
+      "primitive": "box",
+      "size": [
+        55.0,
+        35.0,
+        55.0
+      ]
+    },
+    "wheel_fr": {
+      "primitive": "box",
+      "size": [
+        55.0,
+        35.0,
+        55.0
+      ]
+    },
+    "wheel_rl_inner": {
+      "primitive": "box",
+      "size": [
+        55.0,
+        35.0,
+        55.0
+      ]
+    },
+    "wheel_rl_outer": {
+      "primitive": "box",
+      "size": [
+        55.0,
+        35.0,
+        55.0
+      ]
+    },
+    "wheel_rr_inner": {
+      "primitive": "box",
+      "size": [
+        55.0,
+        35.0,
+        55.0
+      ]
+    },
+    "wheel_rr_outer": {
+      "primitive": "box",
+      "size": [
+        55.0,
+        35.0,
+        55.0
+      ]
+    }
+  },
+  "constraints": [
+    {
+      "type": "contact",
+      "a": "wheel_fl.-z",
+      "b": "platform.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fl.center",
+      "plane": "platform.+z",
+      "offset": 27.5
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fl.center",
+      "plane": "platform.+z",
+      "in_plane": "x",
+      "value": -145.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fl.center",
+      "plane": "platform.+z",
+      "in_plane": "y",
+      "value": 78.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_fl.axis_z",
+      "b": "platform.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_fl.axis_x",
+      "b": "platform.axis_x"
+    },
+    {
+      "type": "contact",
+      "a": "wheel_fr.-z",
+      "b": "platform.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fr.center",
+      "plane": "platform.+z",
+      "offset": 27.5
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fr.center",
+      "plane": "platform.+z",
+      "in_plane": "x",
+      "value": 145.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_fr.center",
+      "plane": "platform.+z",
+      "in_plane": "y",
+      "value": 78.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_fr.axis_z",
+      "b": "platform.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_fr.axis_x",
+      "b": "platform.axis_x"
+    },
+    {
+      "type": "contact",
+      "a": "wheel_rl_inner.-z",
+      "b": "platform.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rl_inner.center",
+      "plane": "platform.+z",
+      "offset": 27.5
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rl_inner.center",
+      "plane": "platform.+z",
+      "in_plane": "x",
+      "value": -120.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rl_inner.center",
+      "plane": "platform.+z",
+      "in_plane": "y",
+      "value": 46.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rl_inner.axis_z",
+      "b": "platform.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rl_inner.axis_x",
+      "b": "platform.axis_x"
+    },
+    {
+      "type": "contact",
+      "a": "wheel_rl_outer.-z",
+      "b": "platform.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rl_outer.center",
+      "plane": "platform.+z",
+      "offset": 27.5
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rl_outer.center",
+      "plane": "platform.+z",
+      "in_plane": "x",
+      "value": -120.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rl_outer.center",
+      "plane": "platform.+z",
+      "in_plane": "y",
+      "value": 86.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rl_outer.axis_z",
+      "b": "platform.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rl_outer.axis_x",
+      "b": "platform.axis_x"
+    },
+    {
+      "type": "contact",
+      "a": "wheel_rr_inner.-z",
+      "b": "platform.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rr_inner.center",
+      "plane": "platform.+z",
+      "offset": 27.5
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rr_inner.center",
+      "plane": "platform.+z",
+      "in_plane": "x",
+      "value": 120.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rr_inner.center",
+      "plane": "platform.+z",
+      "in_plane": "y",
+      "value": 46.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rr_inner.axis_z",
+      "b": "platform.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rr_inner.axis_x",
+      "b": "platform.axis_x"
+    },
+    {
+      "type": "contact",
+      "a": "wheel_rr_outer.-z",
+      "b": "platform.+z"
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rr_outer.center",
+      "plane": "platform.+z",
+      "offset": 27.5
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rr_outer.center",
+      "plane": "platform.+z",
+      "in_plane": "x",
+      "value": 120.0
+    },
+    {
+      "type": "point_plane_offset",
+      "point": "wheel_rr_outer.center",
+      "plane": "platform.+z",
+      "in_plane": "y",
+      "value": 86.0
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rr_outer.axis_z",
+      "b": "platform.axis_z"
+    },
+    {
+      "type": "axis_parallel",
+      "a": "wheel_rr_outer.axis_x",
+      "b": "platform.axis_x"
+    }
+  ]
+}

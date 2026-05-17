@@ -1,14 +1,14 @@
-# Supported exports
+# 支持的导出格式
 
-Read this file when the user requests STL or 3MF output from CAD geometry. Read `dxf.md` for DXF output, because DXF uses a separate `gen_dxf()` source contract.
+用户要求从 CAD 几何导出 STL 或 3MF 时阅读本文。DXF 输出见 `dxf.md`，因其使用单独的 `gen_dxf()` 源码约定。
 
-## Policy
+## 策略
 
-STL and 3MF are mesh sidecars, not substitutes for STEP. Generate and validate STEP first, then export requested sidecars from the same `scripts/step` run. Do not render STL or 3MF directly; render or inspect the STEP when visual review is needed.
+STL 与 3MF 是网格 sidecar，不能替代 STEP。先生成并校验 STEP，然后在同一次 `scripts/step` 运行中导出所请求的 sidecar。勿直接渲染 STL 或 3MF；需要视觉审查时应渲染或检查 STEP。
 
-## Tool
+## 工具
 
-Use `scripts/step` with a generated Python source:
+对已生成的 Python 源码使用 `scripts/step`：
 
 ```bash
 python scripts/step path/to/model.py \
@@ -16,7 +16,7 @@ python scripts/step path/to/model.py \
   --3mf meshes/model.3mf
 ```
 
-When a generator exists, use the generator form. Use direct STEP/STP targets only when the generator is unavailable or the user explicitly identifies that file as the target:
+存在生成器时使用生成器形式。仅在生成器不可用或用户明确将该文件指定为目标时使用直接 STEP/STP：
 
 ```bash
 python scripts/step --kind part path/to/model.step \
@@ -24,26 +24,26 @@ python scripts/step --kind part path/to/model.step \
   --3mf meshes/model.3mf
 ```
 
-Sidecar paths must be relative `.stl` or `.3mf` paths and are resolved beside the STEP output.
+Sidecar 路径须为相对的 `.stl` 或 `.3mf` 路径，并在 STEP 输出旁解析。
 
-## Mesh tolerance
+## 网格容差
 
-Use these flags when the default mesh density is wrong for the part:
+默认网格密度不合适时使用：
 
 ```bash
 --mesh-tolerance FLOAT
 --mesh-angular-tolerance FLOAT
 ```
 
-Use tighter tolerances for small curved parts or visual fidelity. Use looser tolerances for large simple geometry when file size matters.
+小曲面零件或视觉保真需要更紧容差。大且简单几何在文件体积重要时可放宽。
 
-## Workflow
+## 工作流
 
-1. Generate STEP from `gen_step()` with the requested sidecar flag(s).
-2. Run facts/planes/positioning inspection on the STEP.
-3. Return the STEP, requested sidecar files, and CAD Explorer link.
+1. 用 `gen_step()` 与请求的 sidecar 标志生成 STEP。
+2. 对 STEP 运行 facts/planes/positioning 检查。
+3. 返回 STEP、所请求 sidecar 文件及 CAD Explorer 链接。
 
-Example:
+示例：
 
 ```bash
 python scripts/step models/bracket.py \
@@ -54,7 +54,7 @@ python scripts/step models/bracket.py \
 python scripts/inspect refs models/bracket.step --facts --planes --positioning
 ```
 
-## Reporting
+## 报告
 
 ```text
 Files:

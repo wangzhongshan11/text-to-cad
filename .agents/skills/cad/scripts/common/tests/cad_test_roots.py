@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from unittest import mock
 
-from common import assembly_spec, catalog, generation, render
+from common import catalog, generation, render
 
 
 IGNORED_TEST_ROOT = Path(__file__).resolve().parents[6] / "tmp" / "cad-skill-tests"
@@ -23,10 +23,11 @@ class IsolatedCadRoots:
         self.cad_root.mkdir(parents=True, exist_ok=True)
 
         patches = [
-            mock.patch.object(assembly_spec, "CAD_ROOT", self.cad_root),
             mock.patch.object(catalog, "CAD_ROOT", self.cad_root),
+            mock.patch.object(catalog, "REPO_ROOT", self.cad_root),
             mock.patch.object(render, "CAD_ROOT", self.cad_root),
             mock.patch.object(generation, "CAD_ROOT", self.cad_root),
+            mock.patch.object(generation, "REPO_ROOT", self.cad_root),
         ]
         render_tool_cli = sys.modules.get("render.cli")
         if render_tool_cli is not None:

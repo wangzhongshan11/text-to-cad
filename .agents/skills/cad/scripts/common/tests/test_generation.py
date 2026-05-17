@@ -150,16 +150,6 @@ class CadGenerationTests(unittest.TestCase):
         mesh_tolerance: float | None = None,
         mesh_angular_tolerance: float | None = None,
     ) -> Path:
-        fields: list[str] = ["'shape': _shape()"]
-        fields.append(f"'step_output': {(step_output or f'{name}.step')!r}")
-        if stl is not None:
-            fields.append(f"'stl': {stl!r}")
-        if three_mf is not None:
-            fields.append(f"'3mf': {three_mf!r}")
-        if mesh_tolerance is not None:
-            fields.append(f"'mesh_tolerance': {mesh_tolerance!r}")
-        if mesh_angular_tolerance is not None:
-            fields.append(f"'mesh_angular_tolerance': {mesh_angular_tolerance!r}")
         if with_dxf and dxf_output is None:
             dxf_output = f"{name}.dxf"
         if with_urdf and urdf_output is None:
@@ -184,12 +174,12 @@ class CadGenerationTests(unittest.TestCase):
             "    return build123d.Box(1, 1, 1)",
             "",
         ]
+        if step_output is not None:
+            prologue.extend([f"STEP_OUTPUT = {step_output!r}", ""])
         step_block = [
             "def gen_step():",
             "    _record('gen_step')",
-            "    return {",
-            *[f"        {field}," for field in fields],
-            "    }",
+            "    return _shape()",
             "",
         ]
         dxf_block = [
@@ -223,85 +213,6 @@ class CadGenerationTests(unittest.TestCase):
         script_path = self.temp_root / f"{name}.py"
         script_path.write_text("\n".join(line for block in blocks for line in block), encoding="utf-8")
         return script_path
-
-    def _write_assembly_generator(
-        self,
-        name: str,
-        *,
-        instances: list[dict[str, object]],
-        with_dxf: bool = False,
-        with_urdf: bool = False,
-        step_output: str | None = None,
-        stl: str | None = None,
-        three_mf: str | None = None,
-        dxf_output: str | None = None,
-        urdf_output: str | None = None,
-        mesh_tolerance: float | None = None,
-        mesh_angular_tolerance: float | None = None,
-    ) -> Path:
-        fields: list[str] = [f"'instances': {instances!r}"]
-        fields.append(f"'step_output': {(step_output or f'{name}.step')!r}")
-        if stl is not None:
-            fields.append(f"'stl': {stl!r}")
-        if three_mf is not None:
-            fields.append(f"'3mf': {three_mf!r}")
-        if mesh_tolerance is not None:
-            fields.append(f"'mesh_tolerance': {mesh_tolerance!r}")
-        if mesh_angular_tolerance is not None:
-            fields.append(f"'mesh_angular_tolerance': {mesh_angular_tolerance!r}")
-        if with_dxf and dxf_output is None:
-            dxf_output = f"{name}.dxf"
-        if with_urdf and urdf_output is None:
-            urdf_output = f"{name}.urdf"
-
-        lines = [
-            "from pathlib import Path",
-            "CALLS = Path(__file__).with_suffix('.calls')",
-            "def _output_path(suffix, output):",
-            "    path = Path(__file__).parent / output if output else Path(__file__).with_suffix(suffix)",
-            "    path.parent.mkdir(parents=True, exist_ok=True)",
-            "    return path",
-            "def _record(name):",
-            "    with CALLS.open('a', encoding='utf-8') as handle:",
-            "        handle.write(name + '\\n')",
-            "class _FakeDxf:",
-            "    def saveas(self, output_path):",
-            "        Path(output_path).write_text('0\\nEOF\\n', encoding='utf-8')",
-            "",
-            "def gen_step():",
-            "    _record('gen_step')",
-            "    return {",
-            *[f"        {field}," for field in fields],
-            "    }",
-            "",
-        ]
-        if with_dxf:
-            lines.extend(
-                [
-                    "def gen_dxf():",
-                    "    _record('gen_dxf')",
-                    "    return {",
-                    "        'document': _FakeDxf(),",
-                    f"        'dxf_output': {dxf_output!r},",
-                    "    }",
-                    "",
-                ]
-            )
-        if with_urdf:
-            lines.extend(
-                [
-                    "def gen_urdf():",
-                    "    _record('gen_urdf')",
-                    "    return {",
-                    "        'xml': '<robot name=\"sample\"><link name=\"base\" /></robot>',",
-                    f"        'urdf_output': {urdf_output!r},",
-                    "    }",
-                    "",
-                ]
-            )
-        assembly_path = self.temp_root / f"{name}.py"
-        assembly_path.write_text("\n".join(lines), encoding="utf-8")
-        return assembly_path
 
     def test_generated_part_discovery_includes_missing_step_output(self) -> None:
         script_path = self._generator_script("flat")
@@ -346,7 +257,7 @@ class CadGenerationTests(unittest.TestCase):
             "\n".join(
                 [
                     "def gen_step():",
-                    "    return {'shape': object()}",
+                    "    return object()",
                     "",
                 ]
             ),
@@ -370,8 +281,8 @@ class CadGenerationTests(unittest.TestCase):
 
         spec = next(spec for spec in cad_generation.list_entry_specs() if spec.source_path == script_path)
 
-        self.assertEqual(self._cad_ref("flat"), spec.cad_ref)
-        self.assertEqual(self.temp_root / "flat.step", spec.step_path)
+        self.assertEqual(self._cad_ref("custom/renamed"), spec.cad_ref)
+        self.assertEqual(self.temp_root / "custom" / "renamed.step", spec.step_path)
         self.assertEqual(self.temp_root / "flat.dxf", spec.dxf_path)
         self.assertIsNone(spec.stl_path)
         self.assertIsNone(spec.three_mf_path)
@@ -396,7 +307,7 @@ class CadGenerationTests(unittest.TestCase):
             "\n".join(
                 [
                     "def gen_step():",
-                    "    return {'shape': object(), 'step_output': 'flat.step'}",
+                    "    return object()",
                     "",
                     "def gen_dxf():",
                     "    return {'document': object()}",
@@ -431,27 +342,23 @@ class CadGenerationTests(unittest.TestCase):
         self.assertTrue(script_path.with_suffix(".step").exists())
         self.assertIsNotNone(scene)
 
-    def test_bare_assembly_children_return_is_supported(self) -> None:
-        self._write_step("leaf")
-        script_path = self.temp_root / "bare_assembly.py"
+    def test_invalid_gen_step_dict_return_is_rejected(self) -> None:
+        script_path = self.temp_root / "bad.py"
         script_path.write_text(
             "\n".join(
                 [
-                    f"IDENTITY = {IDENTITY_TRANSFORM!r}",
                     "def gen_step():",
-                    "    return [{'path': 'leaf.step', 'name': 'leaf', 'transform': IDENTITY}]",
+                    "    return {'shape': object()}",
                     "",
                 ]
             ),
             encoding="utf-8",
         )
 
-        spec = next(spec for spec in cad_generation.list_entry_specs() if spec.source_path == script_path)
-        assembly_spec = cad_generation.read_assembly_spec(script_path)
+        with self.assertRaisesRegex(ValueError, "must return a build123d Shape or Compound"):
+            from common.metadata import parse_generator_metadata
 
-        self.assertEqual("assembly", spec.kind)
-        self.assertEqual(1, len(assembly_spec.children))
-        self.assertEqual("leaf", assembly_spec.children[0].name)
+            parse_generator_metadata(script_path)
 
     def test_bare_dxf_document_return_is_supported(self) -> None:
         script_path = self.temp_root / "bare_dxf.py"
@@ -526,16 +433,6 @@ class CadGenerationTests(unittest.TestCase):
         scoped_root = self.temp_root / "scoped"
         scoped_root.mkdir()
         self._write_step_at(scoped_root, "leaf")
-        self._write_assembly_generator(
-            "dependent-assembly",
-            instances=[
-                {
-                    "path": "scoped/leaf.step",
-                    "name": "leaf",
-                    "transform": IDENTITY_TRANSFORM,
-                }
-            ],
-        )
         all_specs = [
             spec
             for spec in cad_generation.list_entry_specs()
@@ -651,7 +548,7 @@ class CadGenerationTests(unittest.TestCase):
                 [
                     "def gen_step():",
                     "    raise RuntimeError('unrelated assembly should not run')",
-                    "    return {'instances': [], 'step_output': 'unrelated.step'}",
+                    "    return object()",
                     "",
                 ]
             ),
@@ -667,28 +564,6 @@ class CadGenerationTests(unittest.TestCase):
             cad_generation.generate_step_targets([str(selected_path)], direct_step_kind="part")
 
         self.assertEqual([self._cad_ref("selected")], calls)
-
-    def test_step_generation_infers_assembly_target(self) -> None:
-        self._write_step("imported-part")
-        assembly_path = self._write_assembly_generator(
-            "robot",
-            instances=[
-                {
-                    "path": "imported-part.step",
-                    "name": "leaf",
-                    "transform": IDENTITY_TRANSFORM,
-                }
-            ],
-        )
-        calls: list[str] = []
-
-        def fake_generate(spec, *, entries_by_step_path):
-            calls.append(spec.kind)
-
-        with mock.patch.object(cad_generation, "_generate_step_outputs", side_effect=fake_generate):
-            cad_generation.generate_step_targets([str(assembly_path)])
-
-        self.assertEqual(["assembly"], calls)
 
     def test_dxf_generation_rejects_source_without_dxf(self) -> None:
         script_path = self._generator_script("part")
@@ -748,17 +623,22 @@ class CadGenerationTests(unittest.TestCase):
 
     def test_sidecars_are_not_separate_generation_specs(self) -> None:
         self._generator_script("flat", with_dxf=True)
-        self._write_step("imported-part")
-        self._write_assembly_generator(
-            "robot",
-            instances=[
-                {
-                    "path": "imported-part.step",
-                    "name": "leaf",
-                    "transform": IDENTITY_TRANSFORM,
-                }
-            ],
-            with_urdf=True,
+        robot_path = self.temp_root / "robot.py"
+        robot_path.write_text(
+            "\n".join(
+                [
+                    "def gen_step():",
+                    "    import build123d",
+                    "    return build123d.Compound(label='robot', children=[build123d.Box(1, 1, 1)])",
+                    "def gen_urdf():",
+                    "    return {",
+                    "        'xml': '<robot name=\"robot\"><link name=\"base\" /></robot>',",
+                    "        'urdf_output': 'robot.urdf',",
+                    "    }",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
         )
 
         cad_refs = {
@@ -954,7 +834,7 @@ class CadGenerationTests(unittest.TestCase):
             + "\n"
         )
 
-        with self.assertRaisesRegex(ValueError, "must return a shape, assembly list, or legacy envelope dict"):
+        with self.assertRaisesRegex(ValueError, "must return a build123d Shape or Compound"):
             cad_generation.list_entry_specs()
 
     def test_generator_discovery_ignores_sidecar_only_scripts(self) -> None:
@@ -993,40 +873,6 @@ class CadGenerationTests(unittest.TestCase):
         self.assertIsNone(specs[self._cad_ref("meshy")].three_mf_path)
         self.assertEqual(cad_generation.DEFAULT_MESH_TOLERANCE, specs[self._cad_ref("meshy")].mesh_tolerance)
         self.assertEqual(cad_generation.DEFAULT_MESH_ANGULAR_TOLERANCE, specs[self._cad_ref("meshy")].mesh_angular_tolerance)
-
-    def test_generated_assembly_paths_use_sibling_defaults_and_ignore_legacy_sidecars(self) -> None:
-        self._write_step("imported-part")
-        self._write_assembly_generator(
-            "assembly",
-            instances=[
-                {
-                    "path": "imported-part.step",
-                    "name": "leaf",
-                    "transform": IDENTITY_TRANSFORM,
-                }
-            ],
-            with_dxf=True,
-            with_urdf=True,
-            stl="assembly.stl",
-            three_mf="assembly.3mf",
-            mesh_tolerance=0.3,
-            mesh_angular_tolerance=0.2,
-        )
-
-        spec = next(
-            spec
-            for spec in cad_generation.list_entry_specs()
-            if spec.cad_ref == self._cad_ref("assembly")
-        )
-
-        self.assertEqual("assembly", spec.kind)
-        self.assertEqual(self.temp_root / "assembly.step", spec.step_path)
-        self.assertEqual(self.temp_root / "assembly.dxf", spec.dxf_path)
-        self.assertEqual(self.temp_root / "assembly.urdf", spec.urdf_path)
-        self.assertIsNone(spec.stl_path)
-        self.assertIsNone(spec.three_mf_path)
-        self.assertEqual(cad_generation.DEFAULT_MESH_TOLERANCE, spec.mesh_tolerance)
-        self.assertEqual(cad_generation.DEFAULT_MESH_ANGULAR_TOLERANCE, spec.mesh_angular_tolerance)
 
     def test_imported_step_defaults_to_part(self) -> None:
         self._write_step("imported")
@@ -1498,7 +1344,7 @@ class CadGenerationTests(unittest.TestCase):
 
         assembly_composition = {
             "schemaVersion": 1,
-            "mode": "linked",
+            "mode": "native",
             "mesh": {
                 "url": "model.glb",
                 "hash": "",

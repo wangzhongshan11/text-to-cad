@@ -15,7 +15,7 @@ sys.path.insert(0, str(INSPECT_DIR))
 from inspect_refs import cli as inspect_cli
 from inspect_refs import inspect as refs_inspect
 from common import cad_ref_syntax as refs_syntax
-from common import assembly_spec
+from common import catalog
 from common import step_targets
 from common.render import part_glb_path
 from common.selector_types import SelectorBundle, SelectorProfile
@@ -357,7 +357,7 @@ class InspectRefsTests(unittest.TestCase):
         tempdir = self._isolated_roots.temporary_cad_directory(prefix="tmp-refs-inspect-")
         self._tempdir = tempdir
         self.temp_root = Path(tempdir.name)
-        self.relative_dir = self.temp_root.relative_to(assembly_spec.CAD_ROOT).as_posix()
+        self.relative_dir = self.temp_root.relative_to(catalog.CAD_ROOT).as_posix()
         self.lookup_ref = f"{self.relative_dir}/sample"
         self.cad_ref = self.lookup_ref
         self.step_path = self.temp_root / "sample.step"
@@ -620,7 +620,7 @@ class InspectRefsTests(unittest.TestCase):
         assembly_step_path = self.temp_root / "sample-assembly.step"
         assembly_path.write_text(
             "def gen_step():\n"
-            "    return {'instances': [], 'step_output': 'sample-assembly.step'}\n",
+            "    return object()\n",
             encoding="utf-8",
         )
 

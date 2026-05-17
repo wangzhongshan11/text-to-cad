@@ -1,178 +1,230 @@
-# Repair loop
+# 修复循环
 
-Read this file when generation, export, inspection, positioning, render review, Explorer setup, or documentation validation fails.
+生成、导出、检查、定位、渲染审查、Explorer 启动或文档校验失败时阅读本文。
 
-## Loop
+## 循环
 
-1. Read the failing command output.
-2. Classify the failure.
-3. Make the smallest responsible source or command change.
-4. Rerun the failed command.
-5. Rerun any dependent validation checks.
-6. Report remaining risk or deliberate deviations.
+1. 阅读失败命令输出。
+2. 对失败分类。
+3. 做最小必要源码或命令变更。
+4. 重新运行失败命令。
+5. 重新运行依赖的校验。
+6. 报告剩余风险或有意偏差。
 
-## Failure classes and fixes
+## 失败类型与修复
 
-### Source import or syntax failure
+### 源码导入或语法失败
 
-Likely causes:
+可能原因：
 
-- invalid Python syntax
-- missing import
-- wrong build123d symbol
-- function not named `gen_step()`
-- executable code outside the intended function has side effects
+- Python 语法无效
+- 缺少 import
+- build123d 符号错误
+- 函数未命名为 `gen_step()`
+- 预期函数外的可执行代码有副作用
 
-Fix:
+修复：
 
-- correct imports and syntax
-- ensure `gen_step()` returns the STEP-ready shape or compound
-- keep output paths in CLI commands, not inside `gen_step()`
+- 纠正 import 与语法
+- 确保 `gen_step()` 返回 STEP 就绪 shape 或 compound
+- 输出路径放在 CLI 命令中，勿放在 `gen_step()` 内
 
-### Invalid or missing geometry
+### 几何无效或缺失
 
-Likely causes:
+可能原因：
 
-- open sketch
-- subtractive profile outside target
-- zero thickness
-- boolean operation failed
-- construction geometry used as exported geometry
+- 开放草图
+- 减材轮廓在 targets 外
+- 零厚度
+- 布尔失败
+- 将构造几何当作导出几何
 
-Fix:
+修复：
 
-- close profiles intended to become faces
-- verify dimensions are positive
-- make subtractive tools pass through when through-cuts are intended
-- simplify the failing feature and rebuild incrementally
+- 封闭拟成面的轮廓
+- 验证尺寸为正
+- 贯通切除时让减材工具穿透
+- 简化失败特征并增量重建
 
-### Fillet or chamfer failure
+### 圆角或倒角失败
 
-Likely causes:
+可能原因：
 
-- radius/length exceeds local geometry
-- selected edges include tiny or unintended edges
-- boolean operation created complex edge topology
+- 半径/长度超出局部几何
+- 所选边包含微小或非预期边
+- 布尔产生复杂边拓扑
 
-Fix:
+修复：
 
-- reduce radius/length
-- filter selected edges more narrowly
-- apply fillets later in the model
-- split edge groups by feature intent
+- 减小半径/长度
+- 更窄地筛选边
+- 在模型更晚阶段应用圆角
+- 按特征意图拆分边组
 
-### Wrong scale or bounding box
+### 比例或包围盒错误
 
-Likely causes:
+可能原因：
 
-- units mismatch
-- mistaken diameter/radius
-- extrusion direction or amount wrong
-- part not centered as assumed
-- direct imported STEP uses unexpected units
+- 单位不一致
+- 直径/半径搞错
+- 拉伸方向或量错误
+- 零件未按假设居中
+- 直接导入 STEP 使用意外单位
 
-Fix:
+修复：
 
-- check parameter values
-- inspect facts and planes
-- measure critical extents
-- correct source dimensions or import handling
+- 检查参数值
+- 检查 facts 与 planes
+- 测量关键尺寸
+- 纠正源码尺寸或导入处理
 
-### Missing feature
+### 特征缺失
 
-Likely causes:
+可能原因：
 
-- wrong `Mode.ADD`/`Mode.SUBTRACT`
-- feature profile not inside target
-- blind cut too shallow
-- selector changed after prior operation
+- 错误的 `Mode.ADD`/`Mode.SUBTRACT`
+- 特征轮廓不在目标内
+- 盲孔切割过浅
+- 先前操作后选择器变化
 
-Fix:
+修复：
 
-- confirm feature mode
-- increase cut length for through-cuts
-- inspect topology or planes
-- regenerate and measure/check feature-specific refs
+- 确认特征模式
+- 贯通切除时增加切削长度
+- 检查拓扑或平面
+- 重新生成并测量/检查特征专用引用
 
-### Selector fragility
+### 选择器脆弱
 
-Likely causes:
+可能原因：
 
-- arbitrary index selection
-- topology changed after fillet or boolean
-- similar faces/edges are indistinguishable
+- 任意下标选择
+- 圆角或布尔后拓扑变化
+- 相似面/边无法区分
 
-Fix:
+修复：
 
-- select by axis, plane, position, normal, or inspected reference
-- use `refs --facts --planes --positioning` to rediscover stable references
-- add construction datums or simplify operations if needed
+- 按轴、平面、位置、法向或已检查引用选择
+- 用 `refs --facts --planes --positioning` 重新发现稳定引用
+- 必要时添加构造基准或简化操作
 
-### Positioning or joint mismatch
+### 约束装配求解失败
 
-Likely causes:
+可能原因：
 
-- wrong part-local origin
-- child `Location` offset wrong
-- build123d joint attached to the wrong datum
-- `.connect_to()` moved the wrong part
-- joint axis or orientation inverted
-- rotation applied about wrong axis
-- sign error in symmetric placement
-- mating face selected incorrectly
+- 缺少 `ground` 或基准 `fix`
+- 仅有贴合约束、缺少平面内 `point_plane_offset`
+- 约束互相矛盾（例如既 `contact` 又要求 `plane_distance`）
+- 未知 `feature_id` 或 `parts` 键与 `bodies` 不一致
+- 初值过差导致求解未收敛
 
-Fix:
+修复：
 
-- inspect `refs --positioning`
-- run `frame` on relevant selectors or occurrences
-- run `mate` for read-only delta
-- apply correction to source build123d joint, `.connect_to()` call, `Location`, datum, or feature offset
-- regenerate and remeasure
+- 阅读求解报告中的 `hint`、`free`、`conflict`（见下「约束求解工具输出」）
+- 仅修改 `constraints` 或 Python 参数，勿改零件 mesh（除非用户要求）
+- 为欠约束体补充 `in_plane` x/y、距离或对称类约束
+- 必要时添加 `initial_guess`（7 个数：`tx ty tz qx qy qz qw`）
+- API 与约束语义见 `constraint-assembly.md`；子链路拆分见 `build123d-modeling.md`
 
-### Explorer startup or link failure
+### 约束规模超限
 
-Likely causes:
+可能原因：
 
-- Node/npm unavailable
-- Explorer app not built or cannot start
-- scan root differs from assumed root
-- returned file path is not relative to active scan root
+- 单张 `CONSTRAINTS` 超过默认 `max_bodies`（40）或 `max_constraints`（240）
+- 体数 ≥ `warn_bodies`（30）触发 `large_assembly` 警告
 
-Fix:
+修复：
 
-- run `npm --prefix explorer run dev:ensure -- --file path/to/model.step`
-- check `EXPLORER_ROOT_DIR` when available
-- return the best documented link format
-- report startup failure if unresolved
-- rely on CLI facts/measurements for validation
+- 拆子链路或混合 `Location`（`build123d-modeling.md`）
+- 必要时在 spec 中显式放宽：`"limits": {"max_bodies": 48}`（绝对上限 64）
 
-### Render failure
+### 约束求解工具输出
 
-Likely causes:
+| 来源 | 内容 |
+|------|------|
+| `constraint solve` stdout | 紧凑 report JSON（`status`, `residual_max`, `free`, `rotation_issues`, `hint`, `conflict` 等） |
+| `constraint solve` 失败 stderr | 同上完整 report |
+| `constraint_assembly` 失败 | `RuntimeError`，消息含 `hint` |
+| `examples/constraint/out/<spec>.report.json` | `run_validation.py` 写入的 report |
+| `examples/constraint/out/<spec>.transforms.json` | 每体 4×4 变换；排查异常旋转 |
+| `report_path=` 参数 | 与 report JSON 同结构 |
+| `run_validation.py` 行输出 | `status=… expected=… residual=… ok=…` |
 
-- attempted to render Python source, STL, or 3MF
-- target path wrong
-- Explorer/adjacent render artifact missing
-- invalid render flags
+字段定义见 `constraint-assembly.md` 求解报告表。
 
-Fix:
+### 求解 status=ok 但装配几何异常
 
-- generate STEP first
-- render STEP/STP, CAD path, generated GLB/topology artifact, or `@cad[...]` ref
-- use a simple `render view` before advanced wireframe/section renders
-- skip rendering if it is not needed for validation
+可能原因：
 
-## Diff after repair
+- **box 竖板**只锁 `axis_z`（求解器现会标 `underconstrained` 并写 `rotation_issues`）
+- 单个大 `CONSTRAINTS` 混用本应分区域的 Location 与约束
+- `offset` 与 `contact` 高度不一致
 
-Use `diff` when the fix might have affected unrelated geometry:
+修复：
+
+- 读 report 中 `rotation_issues`；或 `out/*.transforms.json`、`inspect refs --positioning`
+- box 竖板补 `axis_parallel` 锁 `axis_x` 或 `axis_y`；圆柱销竖直只需 `axis`∥`ground.axis_z`
+- 拆子链路（`build123d-modeling.md`）；重新 `scripts/step` 与 `inspect mate`
+
+### 定位或配合不一致（已求解）
+
+可能原因：
+
+- 零件局部原点与 `bodies` 尺寸不一致
+- `constraints` 特征引用错误（如 `b1.-z` 与 `base.+z`）
+- 非求解件 `transform` 矩阵或 Python 偏置错误
+- 对称放置符号错误
+
+修复：
+
+- 检查 `refs --positioning`、`frame`、`mate`
+- 改 `CONSTRAINTS`、Python 尺寸，或非求解件在传入前的 `.moved(...)`
+- 重新 `scripts/step` 并复测
+
+### Explorer 启动或链接失败
+
+可能原因：
+
+- Node/npm 不可用
+- Explorer 应用未构建或无法启动
+- 扫描根与假定根不一致
+- 返回文件路径不相对于活动扫描根
+
+修复：
+
+- 运行 `npm --prefix explorer run dev:ensure -- --file path/to/model.step`
+- 若可用则检查 `EXPLORER_ROOT_DIR`
+- 返回最佳文档化链接格式
+- 若仍未解决则报告启动失败
+- 依赖 CLI facts/测量做校验
+
+### 渲染失败
+
+可能原因：
+
+- 尝试渲染 Python 源码、STL 或 3MF
+- 目标路径错误
+- Explorer/相邻渲染产物缺失
+- 渲染标志无效
+
+修复：
+
+- 先生成 STEP
+- 渲染 STEP/STP、CAD 路径、生成 GLB/拓扑产物或 `@cad[...]` 引用
+- 高级线框/剖视前先用简单 `render view`
+- 若校验不需要则跳过渲染
+
+## 修复后 diff
+
+若修复可能影响无关几何，使用 `diff`：
 
 ```bash
 python scripts/inspect diff path/to/before.step path/to/after.step --planes
 ```
 
-## Reporting failed repairs
+## 报告无法修复的检查
 
-If a check cannot be repaired in the current environment, report:
+若某检查在当前环境无法修复，报告：
 
 ```text
 - what failed
@@ -182,22 +234,16 @@ If a check cannot be repaired in the current environment, report:
 - what the next source-level correction should be
 ```
 
+### 配合检查与源码不一致
 
-### Joint or mating mismatch
+可能原因：
 
-Likely causes:
+- `ground` / `fix` 与意图不符
+- `parts` 键与 `bodies` 不一致
+- 将 CLI `inspect mate` 增量误当作可写约束
 
-- wrong fixed/root component
-- joint location defined in world coordinates when a part-local datum was intended
-- joint orientation flipped
-- duplicate or incorrect joint labels
-- explicit `Location` not recomputed after a parameter change
-- CLI `inspect mate` delta was treated as an edit instead of a diagnostic
+修复：
 
-Fix:
-
-- inspect `refs --positioning` and `frame` for the affected occurrences
-- verify the source-level build123d joint labels and `joint_location` definitions
-- adjust the smallest joint location, axis, angle, position, or explicit transform
-- regenerate the assembly from the Python source
-- rerun `refs --facts --planes --positioning` plus the failed `measure` or `mate` check
+- 对受影响实例检查 `refs --positioning` 与 `frame`
+- 改 `CONSTRAINTS` 或 `constraint_assembly` 的 `parts`
+- 重新 `scripts/step`，再跑失败的 `measure` 或 `mate`

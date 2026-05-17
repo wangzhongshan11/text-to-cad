@@ -1,20 +1,20 @@
-# STEP generation
+# STEP 生成
 
-Read this file when generating or regenerating STEP/STP artifacts from build123d Python source or from direct STEP/STP targets.
+从 build123d Python 源码或直接 STEP/STP 目标生成或重新生成 STEP/STP 产物时阅读本文。
 
-## Tool
+## 工具
 
-The launcher lives in the CAD skill directory:
+入口位于 CAD 技能目录：
 
 ```bash
 python scripts/step [--kind {part|assembly}] targets... [flags]
 ```
 
-Use explicit target paths only. Target paths are resolved from the command cwd unless absolute. When running from a workspace root, prefix the launcher path with the CAD skill directory; when running from the skill directory, pass absolute or correctly relative workspace target paths. Do not rely on directory-wide generation.
+仅使用明确目标路径。目标路径除绝对路径外从命令 cwd 解析。从工作区根运行时须在路径前加 CAD 技能目录；从技能目录运行时传入绝对或正确相对的工作区目标路径。勿依赖目录级批量生成。
 
-## Generated Python source
+## 生成的 Python 源码
 
-Generated build123d sources should define:
+生成的 build123d 源码应定义：
 
 ```python
 def gen_step():
@@ -22,74 +22,76 @@ def gen_step():
     return shape_or_compound
 ```
 
-Generated Python targets infer their kind from the source metadata and `gen_step()` envelope; pass the source path directly. When a generator exists, this is the preferred way to run `scripts/step`.
+多零件 box/cylinder/sphere 约束装配：`return constraint_assembly(CONSTRAINTS, parts)`（返回值仍是 `shape_or_compound`）。见 `constraint-assembly.md`。
+
+生成的 Python 目标根据其源码元数据与 `gen_step()` 返回值推断 kind；直接传入源码路径。存在生成器时，此为运行 `scripts/step` 的首选方式。
 
 ```bash
-python scripts/step path/to/part.py
-python scripts/inspect refs path/to/part.step --facts --planes --positioning
+# macOS / Linux（仓库根目录）
+./.venv/bin/python .agents/skills/cad/scripts/step path/to/model.py
+./.venv/bin/python .agents/skills/cad/scripts/inspect refs path/to/model.step --facts --planes --positioning
+
+# Windows（仓库根目录）
+.\.venv\Scripts\python.exe .agents\skills\cad\scripts\step path\to\model.py
+.\.venv\Scripts\python.exe .agents\skills\cad\scripts\inspect refs path\to\model.step --facts --planes --positioning
 ```
 
-```bash
-python scripts/step path/to/assembly.py
-python scripts/inspect refs path/to/assembly.step --facts --planes --positioning
-```
+直接传入已生成的装配体 `.step` 会将其视为导入的原生 STEP。若须保留源码级装配组合，请传入 `.py` 装配源码。
 
-Passing a generated assembly `.step` directly treats it as imported native STEP. Pass the `.py` assembly source when source-level assembly composition must be preserved.
+## 直接 STEP/STP 目标
 
-## Direct STEP/STP targets
-
-Use direct STEP/STP targets only when the generator is unavailable or the user explicitly identifies a STEP/STP file as the target:
+仅当生成器不可用或用户明确将某 STEP/STP 文件指定为目标时使用直接目标：
 
 ```bash
 python scripts/step --kind part path/to/imported.step
 python scripts/inspect refs path/to/imported.step --facts --planes --positioning
 ```
 
-Direct targets can use sidecar mesh flags, but generator targets remain preferred when a generator exists. Read `supported-exports.md` for STL and 3MF sidecars.
+直接目标可使用 sidecar mesh 相关标志，但存在生成器时仍以生成器优先。STL 与 3MF sidecar 见 `supported-exports.md`。
 
-## Adjacent Explorer artifacts
+## 相邻 Explorer 产物
 
-`scripts/step` generates the explicit STEP target and adjacent hidden Explorer GLB/topology artifacts. These artifacts support Explorer and render workflows. Do not require a separate validation subcommand for them.
+`scripts/step` 生成明确 STEP 目标及相邻隐藏 Explorer GLB/拓扑产物。它们支持 Explorer 与渲染工作流。勿为其单独要求校验子命令。
 
-Use `rendering-and-explorer.md` for Explorer startup and link formatting.
+Explorer 启动与链接格式见 `rendering-and-explorer.md`。
 
-## Post-generation inspection
+## 生成后检查
 
-Run lightweight inspection after generation with `scripts/inspect`.
+生成后用 `scripts/inspect` 做轻量检查。
 
-Rules:
+规则：
 
-- Use facts and plane grouping for normal generation.
-- Add positioning facts when the model has mating faces, assembly children, datums, or repeated features.
-- Add topology only when selector enumeration is needed; it can be expensive on large models.
+- 常规生成使用 facts 与平面分组。
+- 若模型有配合面、装配子项、基准或重复特征，加入 positioning facts。
+- 仅在选择器枚举需要时加入拓扑；大模型上可能较昂贵。
 
-Recommended inspection:
+推荐检查：
 
 ```bash
 python scripts/inspect refs path/to/model.step --facts --planes --positioning
 ```
 
-For selector-heavy validation:
+偏重选择器的校验：
 
 ```bash
 python scripts/inspect refs path/to/model.step --topology
 ```
 
-## Generation checklist
+## 生成清单
 
-Before running the command:
+运行命令前：
 
-- Confirm the user request has been converted into a natural-language CAD brief.
-- Confirm the source defines `gen_step()`.
-- Prefer the Python generator over a generated STEP/STP file when both are available.
-- Confirm labels are assigned for exported parts and assembly children.
-- Confirm the target path is explicit.
-- Confirm expected bbox, labels, and positioning checks are known.
+- 确认用户请求已转为自然语言 CAD 简报。
+- 确认源码定义了 `gen_step()`。
+- 若 Python 生成器与已生成 STEP/STP 同时存在，优先 Python 生成器。
+- 确认已为导出零件与装配子项分配标签。
+- 确认目标路径明确。
+- 确认预期 bbox、标签与定位检查已知。
 
-After running the command:
+运行命令后：
 
-- Confirm the process succeeded.
-- Confirm the STEP file exists and is non-empty.
-- Run the relevant `scripts/inspect` command and parse its output.
-- Return Explorer link(s) using `rendering-and-explorer.md`, or report why they are unavailable.
-- Continue with targeted inspection if facts/planes are insufficient.
+- 确认进程成功。
+- 确认 STEP 文件存在且非空。
+- 运行相应 `scripts/inspect` 命令并解析输出。
+- 按 `rendering-and-explorer.md` 返回 Explorer 链接，或说明不可用原因。
+- 若 facts/planes 不足，继续定向检查。
