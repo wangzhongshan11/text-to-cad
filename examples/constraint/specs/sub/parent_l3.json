@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "ground": "world_root",
+  "bodies": {
+    "world_root": { "primitive": "box", "size": [1, 1, 1] },
+    "chassis": { "sub_spec": "mid_assembly.json" }
+  },
+  "relations": [
+    {
+      "type": "fix_to",
+      "id": "r1",
+      "child": "chassis",
+      "parent": "world_root",
+      "local": [0, 0, 0]
+    }
+  ]
+}

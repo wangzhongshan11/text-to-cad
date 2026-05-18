@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "ground": "base",
+  "bodies": {
+    "base": {"primitive": "box", "size": [200, 150, 20]},
+    "b1": {"primitive": "box", "size": [40, 30, 25]}
+  },
+  "relations": [
+    {"type": "flat_on", "id": "r_b1", "child": "b1", "on": "base.+z", "at": [30, 40]}
+  ]
+}

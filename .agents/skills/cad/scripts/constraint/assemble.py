@@ -9,6 +9,7 @@ def constraint_assembly(
     constraints: dict[str, Any],
     parts: Mapping[str, object],
     *,
+    spec_path: str | Path | None = None,
     report_path: str | Path | None = None,
 ) -> object:
     """Solve constraints and return a build123d Compound of placed parts.
@@ -29,7 +30,15 @@ def constraint_assembly(
 
     from .schema import validate_assembly_spec
 
-    validated = validate_assembly_spec(constraints)
+    resolved_path = (
+        Path(spec_path).expanduser().resolve()
+        if spec_path is not None
+        else None
+    )
+    validated = validate_assembly_spec(
+        constraints,
+        spec_path=resolved_path,
+    )
     body_ids = set(validated["catalog"].keys())
     part_ids = set(parts.keys())
     if part_ids != body_ids:
@@ -43,7 +52,10 @@ def constraint_assembly(
         raise ValueError("; ".join(details))
 
     try:
-        solve_result = solve_assembly(constraints)
+        solve_result = solve_assembly(
+            constraints,
+            spec_path=str(resolved_path) if resolved_path is not None else None,
+        )
     except ConstraintAssemblyError as exc:
         raise RuntimeError(str(exc)) from exc
 
@@ -56,7 +68,7 @@ def constraint_assembly(
         target.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
 
     status = str(solve_result.get("status", ""))
-    if status not in {"ok", "underconstrained"}:
+    if status not in {"ok", "ok_assumed", "underconstrained"}:
         hint = report.get("hint") if isinstance(report, dict) else status
         raise RuntimeError(f"constraint solve failed: {hint}")
 

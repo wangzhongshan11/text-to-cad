@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "ground": "platform",
+  "bodies": {
+    "platform": { "primitive": "box", "size": [400, 180, 55] },
+    "wheel_mod": { "sub_spec": "wheel_module.json" }
+  },
+  "relations": [
+    {
+      "type": "flat_on",
+      "id": "r1",
+      "child": "wheel_mod",
+      "on": "platform.+z",
+      "at": [-145, 78]
+    }
+  ],
+  "interface_spec": {
+    "interface_body": "platform",
+    "exports": ["platform.+z", "platform.center"]
+  }
+}

@@ -15,6 +15,10 @@ class ConstraintSchemaError(ConstraintAssemblyError):
     pass
 
 
+class SubSpecCycleError(ConstraintSchemaError):
+    """Raised when sub_spec file references form a cycle."""
+
+
 class ConstraintValidationError(ConstraintAssemblyError):
     pass
 

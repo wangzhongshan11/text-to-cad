@@ -25,6 +25,7 @@ class CompiledConstraint:
     constraint_type: str
     residual_fn: ResidualFn
     body_ids: tuple[str, ...]
+    jacobian_fn: object | None = None
 
 
 def _direction_parallel_residual(d1: np.ndarray, d2: np.ndarray, *, opposed: bool = False) -> list[float]:
@@ -49,10 +50,12 @@ def compile_constraints(
     constraints: list[dict[str, Any]],
     catalog: dict[str, PrimitiveBody],
 ) -> list[CompiledConstraint]:
+    from .jacobian import attach_jacobian_fns
+
     compiled: list[CompiledConstraint] = []
     for constraint in constraints:
         compiled.append(_compile_one(constraint, catalog))
-    return compiled
+    return attach_jacobian_fns(compiled, constraints, catalog)
 
 
 def _compile_one(constraint: dict[str, Any], catalog: dict[str, PrimitiveBody]) -> CompiledConstraint:

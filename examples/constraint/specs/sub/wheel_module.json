@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "ground": "axle",
+  "bodies": {
+    "axle": { "primitive": "box", "size": [60, 40, 40] },
+    "wheel": { "primitive": "box", "size": [55, 35, 55] }
+  },
+  "relations": [
+    {
+      "type": "flat_on",
+      "id": "r1",
+      "child": "wheel",
+      "on": "axle.+z",
+      "at": [0, 0]
+    }
+  ],
+  "interface_spec": {
+    "interface_body": "axle",
+    "exports": ["axle.+z"]
+  }
+}

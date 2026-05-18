@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from .errors import ConstraintSchemaError
@@ -28,9 +29,44 @@ def _require_mapping(value: object, *, field: str) -> dict[str, Any]:
     return value
 
 
-def validate_assembly_spec(spec: dict[str, Any]) -> dict[str, Any]:
+def validate_assembly_spec(
+    spec: dict[str, Any],
+    *,
+    spec_path: Path | str | None = None,
+) -> dict[str, Any]:
     if not isinstance(spec, dict):
         raise ConstraintSchemaError("assembly spec must be an object")
+
+    # v2 -> v1 transparently. dsl.compile_v2_to_v1 is a pass-through for v1
+    # specs, so existing callers see no behaviour change. Late import avoids a
+    # cycle (dsl -> macros only; macros -> errors).
+    from .dsl import (
+        compile_v2_to_v1,
+        detect_spec_version,
+        extract_layout_places,
+        extract_rotation_modes,
+        extract_yaw_axes,
+        is_verify_only_spec,
+        merged_dof_policy,
+    )
+    from .subgraph import SubGraphBundle, merge_child_catalogs, prepare_spec_with_subgraphs
+
+    path = Path(spec_path).resolve() if spec_path is not None else None
+
+    spec_version = detect_spec_version(spec)
+    rotation_modes = extract_rotation_modes(spec)
+    yaw_axes = extract_yaw_axes(spec) if spec_version == 2 else {}
+    dof_policy = merged_dof_policy(spec) if spec_version == 2 else None
+    layout_only_ids, layout_poses = (
+        extract_layout_places(spec) if spec_version == 2 else (frozenset(), {})
+    )
+    verify_only = is_verify_only_spec(spec) if spec_version == 2 else False
+
+    sub_bundle: SubGraphBundle | None = None
+    if spec_version == 2:
+        spec, sub_bundle = prepare_spec_with_subgraphs(spec, path)
+
+    spec = compile_v2_to_v1(spec)
 
     ground = spec.get("ground")
     if not isinstance(ground, str) or not ground.strip():
@@ -76,6 +112,18 @@ def validate_assembly_spec(spec: dict[str, Any]) -> dict[str, Any]:
         raise ConstraintSchemaError("initial_guess must be an object")
 
     limits = resolve_limits(spec)
+    child_catalogs: dict[str, dict[str, Any]] = {}
+    if sub_bundle is not None:
+        for instance in sub_bundle.instances:
+            if instance.sub_spec_path not in child_catalogs:
+                child_validated = validate_assembly_spec(
+                    instance.child_spec,
+                    spec_path=instance.sub_spec_path,
+                )
+                child_catalogs[instance.sub_spec_path] = child_validated["catalog"]
+                rotation_modes.update(child_validated.get("rotation_modes", {}))
+        catalog = merge_child_catalogs(catalog, sub_bundle, child_catalogs=child_catalogs)
+
     scale_warnings = check_assembly_scale(
         body_count=len(catalog),
         constraint_count=len(normalized),
@@ -93,4 +141,13 @@ def validate_assembly_spec(spec: dict[str, Any]) -> dict[str, Any]:
         "feature_index": {
             body_id: list_feature_ids(catalog[body_id]) for body_id in catalog
         },
+        "rotation_modes": rotation_modes,
+        "yaw_axes": yaw_axes,
+        "spec_version": spec_version,
+        "dof_policy": dof_policy,
+        "layout_only_ids": layout_only_ids,
+        "layout_poses": layout_poses,
+        "verify_only": verify_only,
+        "sub_bundle": sub_bundle,
+        "spec_path": path,
     }

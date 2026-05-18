@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "ground": "platform",
+  "bodies": {
+    "platform": { "primitive": "box", "size": [400, 180, 55] },
+    "wheel_fl": { "primitive": "box", "size": [55, 35, 55] }
+  },
+  "relations": [
+    {
+      "type": "flat_on",
+      "id": "r1",
+      "child": "wheel_fl",
+      "on": "platform.+z",
+      "at": [-145, 78]
+    }
+  ],
+  "interface_spec": {
+    "interface_body": "platform",
+    "exports": ["platform.+z", "platform.center"]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "ground": "world_root",
+  "bodies": {
+    "world_root": { "primitive": "box", "size": [1, 1, 1] },
+    "platform": { "primitive": "box", "size": [400, 180, 55] },
+    "wheel_fl": { "primitive": "box", "size": [55, 35, 55] }
+  },
+  "relations": [
+    {
+      "type": "fix_to",
+      "id": "r1",
+      "child": "platform",
+      "parent": "world_root",
+      "local": [0, 0, 0]
+    },
+    {
+      "type": "flat_on",
+      "id": "r2",
+      "child": "wheel_fl",
+      "on": "platform.+z",
+      "at": [-145, 78]
+    }
+  ]
+}
